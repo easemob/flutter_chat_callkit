@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
+import 'package:agora_chat_callkit/inherited/agora_chat_manager.dart';
+import 'package:agora_chat_callkit/inherited/agora_engine_manager.dart';
 import 'package:agora_chat_callkit/models/agora_chat_call.dart';
 import 'package:flutter/material.dart';
 import 'package:agora_chat_callkit/tools/agora_chat_callkit_tools.dart';
@@ -77,9 +79,12 @@ class AgoraChatCallKitState extends State<AgoraChatCallKit> {
   final Map<String, Timer> _callTimerDic = {};
   final Map<String, Timer> _alertTimerDic = {};
   late AgoraChatCallModel _mode;
-  Timer? _confirmTimer;
+  AgoraChatCallKitEvent? _event;
 
-  final Map<String, AgoraChatCallKitEvent> _eventDict = {};
+  late final AgoraChatManager _chat;
+  late final AgoraEngineManager _rtc;
+
+  Timer? _confirmTimer;
 
   final String _randomKey = AgoraChatCallKitTools.randomStr;
   bool _bNeedSwitchToVoice = false;
@@ -90,25 +95,51 @@ class AgoraChatCallKitState extends State<AgoraChatCallKit> {
     addChatListener();
     _mode = AgoraChatCallModel(
         curDevId: AgoraChatCallKitTools.randomStr,
-        stateChanged: (newState, preState) {});
+        stateChanged: (newState, preState) {
+          // TODO:
+          switch (newState) {
+            case AgoraChatCallState.idle:
+              break;
+            case AgoraChatCallState.outgoing:
+              break;
+            case AgoraChatCallState.alerting:
+              break;
+            case AgoraChatCallState.answering:
+              break;
+          }
+        });
+    _chat = AgoraChatManager(
+      AgoraChatManagerEventHandler(),
+    );
+    _rtc = AgoraEngineManager(
+      EngineOptions(
+        agoraAppId: widget.agoraAppId,
+        areaCode: widget.areaCode,
+        audioSessionOperationRestriction:
+            widget.audioSessionOperationRestriction,
+        videoEncoderConfig: widget.videoEncoderConfig,
+      ),
+      AgoraRtcEngineEventHandler(),
+    );
   }
 
   @override
   void dispose() {
     removeChatListener();
+    _callTimerDic.forEach((key, value) {
+      value.cancel();
+    });
+    _callTimerDic.clear();
+
+    _alertTimerDic.forEach((key, value) {
+      value.cancel();
+    });
+    _alertTimerDic.clear();
+
+    _confirmTimer?.cancel();
+    _confirmTimer = null;
+
     super.dispose();
-  }
-
-  void addEvent(String key, AgoraChatCallKitEvent event) {
-    _eventDict[key] = event;
-  }
-
-  void removeEvent(String key) {
-    _eventDict.remove(key);
-  }
-
-  void clearAllEvent() {
-    _eventDict.clear();
   }
 
   Future<void> _unsetRTCEngine() async {
@@ -137,7 +168,7 @@ class AgoraChatCallKitState extends State<AgoraChatCallKit> {
         onError: (err, msg) {
           // onError?.call();
         },
-        onJoinChannelSuccess: (connection, elapsed) {},
+        onJoinChannelSuccess: _onJoinedChannel,
         onUserOffline: (connection, remoteUid, reason) {},
         onUserJoined: (connection, remoteUid, elapsed) {},
         onUserMuteVideo: (connection, remoteUid, muted) {},
@@ -181,13 +212,13 @@ class AgoraChatCallKitState extends State<AgoraChatCallKit> {
       isCaller: true,
       remoteUserAccount: userId,
       ext: ext,
-      uid: agoraUid,
+      agoraUid: agoraUid,
     );
     _mode = _mode.copyWith(
       curCall: call,
     );
     _mode.state = AgoraChatCallState.outgoing;
-    await _setRTCEngine();
+
     await sendInviteMsgToCallee(
       userId: userId,
       callId: call.callId,
@@ -208,9 +239,7 @@ class AgoraChatCallKitState extends State<AgoraChatCallKit> {
         _callTimerDic.clear();
       }
       _mode.state = AgoraChatCallState.idle;
-      _eventDict.forEach((key, value) {
-        value.onCallEnd.call(AgoraChatCallEndReason.hangup);
-      });
+      event.onCallEnd.call(AgoraChatCallEndReason.hangup);
     } else {
       if (_mode.state == AgoraChatCallState.outgoing) {
         stopCallTimer(_mode.curCall?.remoteUserAccount ?? "");
@@ -227,9 +256,7 @@ class AgoraChatCallKitState extends State<AgoraChatCallKit> {
 
         _mode.state = AgoraChatCallState.idle;
 
-        _eventDict.forEach((key, value) {
-          value.onCallEnd.call(AgoraChatCallEndReason.refuse);
-        });
+        event.onCallEnd.call(AgoraChatCallEndReason.refuse);
       }
     }
   }
@@ -241,6 +268,18 @@ class AgoraChatCallKitState extends State<AgoraChatCallKit> {
 }
 
 extension PrivateMethod on AgoraChatCallKitState {
+  AgoraChatCallKitEvent get event {
+    assert(
+      _event != null,
+      'You must set a AgoraChatCallKitEvent before call.',
+    );
+    return _event!;
+  }
+
+  set event(AgoraChatCallKitEvent? event) {
+    _event = event;
+  }
+
   Future<void> sendInviteMsgToCallee({
     required String userId,
     required AgoraChatCallType callType,
@@ -492,9 +531,7 @@ extension ParseMessage on AgoraChatCallKitState {
         stopAlertTimer(callId);
         _mode.state = AgoraChatCallState.idle;
         // TODO: stop sound;
-        _eventDict.forEach((key, value) {
-          value.onCallEnd.call(AgoraChatCallEndReason.remoteCancel);
-        });
+        event.onCallEnd.call(AgoraChatCallEndReason.remoteCancel);
       } else {
         _mode.recvCalls.remove(callId);
         stopAlertTimer(callId);
@@ -528,16 +565,13 @@ extension ParseMessage on AgoraChatCallKitState {
             } else {
               _mode.state = AgoraChatCallState.idle;
               if (result == kRefuseResult) {
-                _eventDict.forEach((key, value) {
-                  value.onCallEnd.call(AgoraChatCallEndReason.refuse);
-                });
+                event.onCallEnd.call(AgoraChatCallEndReason.refuse);
               }
               if (result == kBusyResult) {
-                _eventDict.forEach((key, value) {
-                  value.onCallEnd.call(AgoraChatCallEndReason.busy);
-                });
+                event.onCallEnd.call(AgoraChatCallEndReason.busy);
               }
             }
+            sendConfirmAnswerMsgToCallee(from, callId, result, calleeDevId);
           }
         }
       }
@@ -580,12 +614,19 @@ extension ParseMessage on AgoraChatCallKitState {
                   .call(
                     _mode.curCall?.channel ?? "",
                     widget.agoraAppId,
-                    _mode.curCall?.uid,
+                    _mode.curCall?.agoraUid,
                   )
                   .timeout(
                     Duration(seconds: widget.callTimeOut),
                     onTimeout: () => {},
                   );
+              if (ret.isNotEmpty) {
+                _mode = _mode.copyWith(
+                  agoraRTCToken: ret.keys.first,
+                  agoraUid: ret.values.first,
+                );
+                _jsonChannel();
+              }
             } else {
               // 用户不需要token验证的场景暂不处理
             }
@@ -593,11 +634,7 @@ extension ParseMessage on AgoraChatCallKitState {
         } else {
           // TODO: stop sound;
           _mode.state = AgoraChatCallState.idle;
-          _eventDict.forEach(
-            (key, value) {
-              value.onCallEnd.call(AgoraChatCallEndReason.handleOnOtherDevice);
-            },
-          );
+          event.onCallEnd.call(AgoraChatCallEndReason.handleOnOtherDevice);
         }
       } else {
         if (_mode.recvCalls.remove(callId) != null) {
@@ -614,19 +651,20 @@ extension ParseMessage on AgoraChatCallKitState {
 
     if (msgType == kMsgTypeValue) {
       String action = ext[kAction];
+      debugPrint("action:-----------$action");
       if (action == kInviteAction) {
         parseInviteMsgExt(ext);
       } else if (action == kAlertAction) {
         parseAlertMsgExt(ext);
-      } else if (msgType == kCancelCallAction) {
+      } else if (action == kCancelCallAction) {
         parseCancelCallMsgExt(ext);
-      } else if (msgType == kAnswerCallAction) {
+      } else if (action == kAnswerCallAction) {
         parseAnswerMsgExt(ext);
-      } else if (msgType == kConfirmRingAction) {
+      } else if (action == kConfirmRingAction) {
         parseConfirmRingMsgExt(ext);
-      } else if (msgType == kConfirmCalleeAction) {
+      } else if (action == kConfirmCalleeAction) {
         parseConfirmCalleeMsgExt(ext);
-      } else if (msgType == kVideoToVoice) {
+      } else if (action == kVideoToVoice) {
         parseVideoToVoiceMsg(ext);
       }
     }
@@ -652,10 +690,8 @@ extension ParseMessage on AgoraChatCallKitState {
         ChatMessageEvent(
       onError: (msgId, msg, error) {
         debugPrint("sendMessage error: ${error.toString()}");
-        _eventDict.forEach((key, value) {
-          value.onError
-              .call(AgoraChatCallError.im(error.code, error.description));
-        });
+        event.onError
+            .call(AgoraChatCallError.im(error.code, error.description));
       },
     ));
   }
@@ -689,9 +725,7 @@ extension TimerExtension on AgoraChatCallKitState {
     sendCancelCallMsgToCallee(remoteUserId, _mode.curCall!.callId);
     if (_mode.curCall!.callType != AgoraChatCallType.multi) {
       _mode.state = AgoraChatCallState.idle;
-      _eventDict.forEach((key, value) {
-        value.onCallEnd.call(AgoraChatCallEndReason.remoteNoResponse);
-      });
+      event.onCallEnd.call(AgoraChatCallEndReason.remoteNoResponse);
     } else {
       // TODO: update multi view;
     }
@@ -713,10 +747,7 @@ extension TimerExtension on AgoraChatCallKitState {
     debugPrint("timeoutConfirm callId: $callId");
     if (_mode.curCall != null && _mode.curCall!.callId == callId) {
       _mode.state = AgoraChatCallState.idle;
-
-      _eventDict.forEach((key, value) {
-        value.onCallEnd.call(AgoraChatCallEndReason.remoteNoResponse);
-      });
+      event.onCallEnd.call(AgoraChatCallEndReason.remoteNoResponse);
     }
   }
 
@@ -742,5 +773,59 @@ extension TimerExtension on AgoraChatCallKitState {
   void timeoutAlertTimer(String callId) {
     Timer? timer = _alertTimerDic.remove(callId);
     timer?.cancel();
+  }
+}
+
+extension Call on AgoraChatCallKitState {
+  void _jsonChannel() async {
+    await _setRTCEngine();
+
+    if (_mode.hasJoined) {
+      await _engine.leaveChannel();
+    }
+
+    await _engine.joinChannel(
+      token: _mode.agoraRTCToken ?? "",
+      channelId: _mode.curCall?.channel ?? "",
+      uid: _mode.agoraUid ?? 0,
+      options: const ChannelMediaOptions(),
+    );
+  }
+
+  void _onJoinedChannel(RtcConnection connection, int elapsed) async {
+    debugPrint("加入房间成功");
+    event.onJoinedChannel?.call(
+      _mode.curCall?.channel ?? "",
+      _mode.curUserAccount ?? "",
+      _mode.agoraUid,
+    );
+    _mode = _mode.copyWith(hasJoined: true);
+    _mode.curCall!.allUserAccounts[_mode.curUserAccount!] = _mode.agoraUid!;
+    if (_mode.curCall!.callType == AgoraChatCallType.multi) {
+      await enableVideo(false);
+    }
+  }
+
+  void _refreshUIOutgOing() {
+    if (_mode.curCall != null) {}
+  }
+}
+
+extension Device on AgoraChatCallKitState {
+  Widget? localVideoView() {
+    return AgoraVideoView(
+      controller: VideoViewController(
+        rtcEngine: _engine,
+        canvas: VideoCanvas(uid: _mode.agoraUid ?? 0),
+      ),
+    );
+  }
+
+  Future<void> enableVideo(bool enable) async {
+    if (enable) {
+      await _engine.enableVideo();
+    } else {
+      await _engine.disableVideo();
+    }
   }
 }

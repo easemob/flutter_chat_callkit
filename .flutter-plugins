@@ -1,8 +1,14 @@
 # This is a generated file; do not edit or check into version control.
 agora_chat_sdk=/Users/dujiepeng/.pub-cache/hosted/pub.dev/agora_chat_sdk-1.1.0/
 agora_rtc_engine=/Users/dujiepeng/.pub-cache/hosted/pub.dev/agora_rtc_engine-6.1.0/
+device_info=/Users/dujiepeng/.pub-cache/hosted/pub.dev/device_info-2.0.3/
 iris_event=/Users/dujiepeng/.pub-cache/hosted/pub.dev/iris_event-2.0.0/
 permission_handler=/Users/dujiepeng/.pub-cache/hosted/pub.dev/permission_handler-10.2.0/
 permission_handler_android=/Users/dujiepeng/.pub-cache/hosted/pub.dev/permission_handler_android-10.2.0/
 permission_handler_apple=/Users/dujiepeng/.pub-cache/hosted/pub.dev/permission_handler_apple-9.0.7/
 permission_handler_windows=/Users/dujiepeng/.pub-cache/hosted/pub.dev/permission_handler_windows-0.1.2/
+platform_device_id=/Users/dujiepeng/.pub-cache/hosted/pub.dev/platform_device_id-1.0.1/
+platform_device_id_linux=/Users/dujiepeng/.pub-cache/hosted/pub.dev/platform_device_id_linux-1.0.0/
+platform_device_id_macos=/Users/dujiepeng/.pub-cache/hosted/pub.dev/platform_device_id_macos-1.0.0/
+platform_device_id_web=/Users/dujiepeng/.pub-cache/hosted/pub.dev/platform_device_id_web-1.0.0/
+platform_device_id_windows=/Users/dujiepeng/.pub-cache/hosted/pub.dev/platform_device_id_windows-1.0.0/

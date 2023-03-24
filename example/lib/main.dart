@@ -1,6 +1,7 @@
 import 'package:example/config.dart';
 import 'package:example/home.dart';
 import 'package:example/login.dart';
+import 'package:example/tools/token_tool.dart';
 import 'package:flutter/material.dart';
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -25,6 +26,9 @@ class MyApp extends StatelessWidget {
           return AgoraChatCallKit(
             agoraAppId: Config.agoraAppId,
             child: child!,
+            tokenHandler: (channel, agoraAppId, agoraUid) {
+              return requestAppServerToken(channel, agoraAppId, agoraUid);
+            },
           );
         },
       ),
@@ -58,36 +62,16 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool _hasSignIn = false;
-  bool _hasLoaded = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder(
         future: ChatClient.getInstance.isLoginBefore(),
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            _hasSignIn = snapshot.data!;
+          if (!snapshot.hasData) {
+            return Container(color: Colors.red);
           }
-          return _hasLoaded
-              ? getWidget(_hasSignIn)
-              : Stack(
-                  children: [
-                    AnimatedOpacity(
-                      opacity: snapshot.hasData ? 0 : 1,
-                      duration: const Duration(seconds: 1),
-                      child: welcomeWidget(),
-                      onEnd: () {
-                        if (mounted) {
-                          setState(() {
-                            _hasLoaded = true;
-                          });
-                        }
-                      },
-                    ),
-                    Positioned.fill(child: getWidget(_hasSignIn)),
-                  ],
-                );
+          return getWidget(snapshot.hasData);
         },
       ),
     );

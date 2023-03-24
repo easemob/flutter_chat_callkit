@@ -11,7 +11,7 @@ class AgoraChatCallModel {
   final String? curUserAccount;
   final String? agoraRTCToken;
   final bool hasJoined;
-  final int? uid;
+  final int? agoraUid;
   final AgoraChatCallStateChange? stateChanged;
   AgoraChatCallState _state;
   Map<String, AgoraChatCall> recvCalls;
@@ -23,7 +23,7 @@ class AgoraChatCallModel {
     this.agoraRTCToken,
     AgoraChatCallState state = AgoraChatCallState.idle,
     this.hasJoined = false,
-    this.uid,
+    this.agoraUid,
     String? curDevId,
     this.stateChanged,
   })  : curDevId = curDevId ?? AgoraChatCallKitTools.randomStr,
@@ -35,7 +35,7 @@ class AgoraChatCallModel {
     String? curUserAccount,
     String? agoraRTCToken,
     bool? hasJoined,
-    int? uid,
+    int? agoraUid,
     AgoraChatCallStateChange? stateChanged,
   }) {
     return AgoraChatCallModel(
@@ -46,7 +46,7 @@ class AgoraChatCallModel {
       agoraRTCToken: agoraRTCToken ?? this.agoraRTCToken,
       state: _state,
       hasJoined: hasJoined ?? this.hasJoined,
-      uid: uid ?? this.uid,
+      agoraUid: agoraUid ?? this.agoraUid,
       stateChanged: stateChanged ?? this.stateChanged,
     );
   }
