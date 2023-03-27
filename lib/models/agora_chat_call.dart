@@ -7,7 +7,7 @@ class AgoraChatCall {
     required this.callType,
     required this.isCaller,
     required this.channel,
-    Map<String, int>? allUserAccounts,
+    Map<int, String>? allUserAccounts,
     this.remoteCallDevId,
     this.agoraUid,
     this.ext,
@@ -20,7 +20,7 @@ class AgoraChatCall {
   final bool isCaller;
   final String? remoteCallDevId;
   final int? agoraUid;
-  Map<String, int> allUserAccounts;
+  Map<int, String> allUserAccounts;
   final Map<String, String>? ext;
 
   AgoraChatCall copyWith({

@@ -32,7 +32,7 @@ Future<Map<String, int>> requestAppServerToken(
     map["agoraUserId"] = agoraUid.toString();
   }
 
-  var uri = Uri.http(
+  var uri = Uri.https(
     Config.appServerHost,
     Config.appServerURL,
     map,
@@ -47,12 +47,11 @@ Future<Map<String, int>> requestAppServerToken(
     Map<String, dynamic>? map = convert.jsonDecode(content);
     if (map != null) {
       if (map["code"] == "RES_0K") {
-        debugPrint("获取数据成功: $map");
         ret[map["accessToken"]] = map["agoraUserId"] ?? 0;
       }
     }
   }
   httpClient.close();
-
+  debugPrint("get token: ${ret.toString()}");
   return ret;
 }

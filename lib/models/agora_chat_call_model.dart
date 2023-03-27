@@ -6,13 +6,13 @@ typedef AgoraChatCallStateChange = void Function(
     AgoraChatCallState newState, AgoraChatCallState preState);
 
 class AgoraChatCallModel {
-  final AgoraChatCall? curCall;
-  final String curDevId;
-  final String? curUserAccount;
-  final String? agoraRTCToken;
-  final bool hasJoined;
-  final int? agoraUid;
-  final AgoraChatCallStateChange? stateChanged;
+  AgoraChatCall? curCall;
+  String curDevId;
+  String? curUserAccount;
+  String? agoraRTCToken;
+  bool hasJoined;
+  int? agoraUid;
+  AgoraChatCallStateChange? stateChanged;
   AgoraChatCallState _state;
   Map<String, AgoraChatCall> recvCalls;
 
@@ -29,27 +29,6 @@ class AgoraChatCallModel {
   })  : curDevId = curDevId ?? AgoraChatCallKitTools.randomStr,
         _state = state,
         recvCalls = recvCalls ?? {};
-
-  AgoraChatCallModel copyWith({
-    AgoraChatCall? curCall,
-    String? curUserAccount,
-    String? agoraRTCToken,
-    bool? hasJoined,
-    int? agoraUid,
-    AgoraChatCallStateChange? stateChanged,
-  }) {
-    return AgoraChatCallModel(
-      curCall: curCall ?? this.curCall,
-      recvCalls: recvCalls,
-      curDevId: curDevId,
-      curUserAccount: curUserAccount ?? this.curUserAccount,
-      agoraRTCToken: agoraRTCToken ?? this.agoraRTCToken,
-      state: _state,
-      hasJoined: hasJoined ?? this.hasJoined,
-      agoraUid: agoraUid ?? this.agoraUid,
-      stateChanged: stateChanged ?? this.stateChanged,
-    );
-  }
 
   set state(AgoraChatCallState state) {
     stateChanged?.call(state, _state);

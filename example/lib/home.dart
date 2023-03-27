@@ -1,5 +1,6 @@
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
-import 'package:example/config.dart';
+
+import 'package:example/tools/callInfo.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -15,22 +16,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    AgoraChatCallKit.of(context).event = AgoraChatCallKitEvent(
-      onCallEnd: (reason) {},
-      onError: (error) {},
-    );
-    testCode();
-  }
-
-  void testCode() async {
-    debugPrint("debugRun");
-    Map<String, int> ret = await Future.delayed(const Duration(seconds: 5), () {
-      return {"key": 1};
-    }).timeout(
-      const Duration(seconds: 2),
-      onTimeout: () => {"key": 2},
-    );
-    debugPrint(ret.toString());
   }
 
   @override
@@ -46,15 +31,23 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ElevatedButton(onPressed: _startCall, child: const Text("Call")),
+          ElevatedButton(onPressed: _answerCall, child: const Text("Answer")),
           ElevatedButton(onPressed: _endCall, child: const Text("End")),
         ],
       ),
     );
   }
 
+  void _answerCall() {
+    if (receiveCallId.isEmpty) {
+      debugPrint('receiveCallId is empty!');
+      return;
+    }
+    AgoraChatCallKit.of(context).answerCall(receiveCallId);
+  }
+
   void _startCall() async {
-    String callId =
-        await AgoraChatCallKit.of(context).startSingleCall(Config.calleeId);
+    String callId = await AgoraChatCallKit.of(context).startSingleCall("du001");
     debugPrint("call id $callId");
   }
 
