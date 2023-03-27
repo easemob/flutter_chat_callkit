@@ -101,6 +101,9 @@ class AgoraEngineManager {
     ));
     _engine.unregisterEventHandler(_handler!);
     _engine.registerEventHandler(_handler!);
+    _engine.setClientRole(role: ClientRoleType.clientRoleBroadcaster);
+    _engine
+        .setChannelProfile(ChannelProfileType.channelProfileLiveBroadcasting);
   }
 
   Future<void> releaseEngine() async {

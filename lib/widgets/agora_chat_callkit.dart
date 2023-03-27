@@ -175,8 +175,21 @@ class AgoraChatCallKitState extends State<AgoraChatCallKit> {
 
   void onUserJoined(int agoraUid) {
     if (_chat.model.curCall != null) {
+      if (_chat.model.curCall?.callType == AgoraChatCallType.multi) {
+        String userId = _chat.model.curCall!.allUserAccounts[agoraUid] ?? "";
+        if (userId.isNotEmpty) {
+          _chat.callTimerDic.remove(userId)?.cancel();
+        }
+        // update ui
+      } else {
+        _chat.callTimerDic
+            .remove(_chat.model.curCall!.remoteUserAccount)
+            ?.cancel();
+        _chat.model.curCall!.allUserAccounts[agoraUid] =
+            _chat.model.curCall!.remoteUserAccount;
+      }
       String channel = _chat.model.curCall!.channel;
-      String userId = _chat.model.curCall!.allUserAccounts[agoraUid]!;
+      String userId = _chat.model.curCall!.allUserAccounts[agoraUid] ?? "";
       debugPrint("user joined $agoraUid, userId: $userId");
       widget.eventHandler.onJoinedChannel?.call(channel, userId, agoraUid);
     }
