@@ -8,3 +8,5 @@ export 'package:agora_chat_callkit/models/agora_chat_call_model.dart';
 export 'package:agora_chat_callkit/agora_chat_callkit_define.dart';
 export 'package:agora_chat_callkit/agora_chat_callkit_error.dart';
 export 'package:agora_chat_callkit/agora_chat_call_kit_event.dart';
+export 'package:agora_chat_callkit/agora_chat_call_manager.dart';
+export 'package:agora_chat_callkit/widgets/agora_chat_call_widget.dart';

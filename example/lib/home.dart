@@ -1,6 +1,6 @@
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
 
-import 'package:example/tools/callInfo.dart';
+import 'package:example/tools/token_tool.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -11,21 +11,38 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final callkitEventKey = "callkit_key";
-
+  String currentCallId = "";
   @override
   void initState() {
     super.initState();
+    AgoraChatCallManager.addEventListener(
+        "home",
+        AgoraChatCallKitEventHandler(
+          onReceiveCall: (userId, callId, callType, ext) {
+            setState(() {
+              currentCallId = callId;
+            });
+          },
+          onCallEnd: (callId, reason) {
+            setState(() {
+              currentCallId = "";
+            });
+          },
+        ));
+
+    AgoraChatCallManager.setRTCTokenHandler((channel, agoraAppId, agoraUid) =>
+        requestAppServerToken(channel, agoraAppId, agoraUid));
   }
 
   @override
   void dispose() {
+    AgoraChatCallManager.removeEventListener("home");
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    Widget content = Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -36,22 +53,30 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+
+    if (currentCallId.isNotEmpty) {
+      content = Stack(
+        children: [
+          AgoraChatCallManager.getLocalVideoView() ?? const Offstage(),
+          Positioned.fill(child: content),
+        ],
+      );
+    }
+
+    return content;
   }
 
-  void _answerCall() {
-    if (receiveCallId.isEmpty) {
-      debugPrint('receiveCallId is empty!');
-      return;
-    }
-    AgoraChatCallKit.of(context).answerCall(receiveCallId);
+  void _answerCall() async {
+    if (currentCallId.isEmpty) return;
+    await AgoraChatCallManager.answer(currentCallId);
   }
 
   void _startCall() async {
-    String callId = await AgoraChatCallKit.of(context).startSingleCall("du001");
-    debugPrint("call id $callId");
+    currentCallId = await AgoraChatCallManager.startSingleCall("du001");
+    debugPrint("call id $currentCallId");
   }
 
   void _endCall() async {
-    await AgoraChatCallKit.of(context).hangup();
+    await AgoraChatCallManager.hangup(currentCallId);
   }
 }

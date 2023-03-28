@@ -1,8 +1,7 @@
 import 'package:example/config.dart';
 import 'package:example/home.dart';
 import 'package:example/login.dart';
-import 'package:example/tools/callInfo.dart';
-import 'package:example/tools/token_tool.dart';
+
 import 'package:flutter/material.dart';
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -26,20 +25,7 @@ class MyApp extends StatelessWidget {
         builder: (context, child) {
           return AgoraChatCallKit(
             agoraAppId: Config.agoraAppId,
-            eventHandler: AgoraChatCallKitEventHandler(
-              onReceiveCall: (userId, callId, callType, ext) {
-                debugPrint(
-                    'have receive call! callId: $callId, userId: $userId, callType: ${callType.toString()}, ext: ${ext.toString()}');
-                receiveCallId = callId;
-              },
-              rtcTokenHandler: (channel, agoraAppId, agoraUid) {
-                return requestAppServerToken(channel, agoraAppId, agoraUid);
-              },
-              onError: (error) {
-                debugPrint("joinError: $error");
-              },
-              onCallEnd: (reason) {},
-            ),
+            timeoutDuration: const Duration(seconds: 10),
             child: child!,
           );
         },

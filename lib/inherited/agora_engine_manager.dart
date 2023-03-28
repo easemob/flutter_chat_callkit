@@ -1,16 +1,14 @@
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
-class EngineOptions {
-  final String agoraAppId;
+class RTCOptions {
   final AudioScenarioType? audioScenarioType;
   final ChannelProfileType? channelProfile;
   final int? areaCode;
   final VideoEncoderConfiguration? videoEncoderConfig;
   final AudioSessionOperationRestriction? audioSessionOperationRestriction;
 
-  EngineOptions({
-    required this.agoraAppId,
+  RTCOptions({
     this.audioScenarioType,
     this.channelProfile,
     this.areaCode,
@@ -19,8 +17,8 @@ class EngineOptions {
   });
 }
 
-class AgoraRtcEngineEventHandler {
-  AgoraRtcEngineEventHandler({
+class RTCEventHandler {
+  RTCEventHandler({
     this.onError,
     this.onJoinChannelSuccess,
     this.onLeaveChannel,
@@ -54,50 +52,77 @@ class AgoraRtcEngineEventHandler {
 
 class AgoraEngineManager {
   AgoraEngineManager(
-    this.options,
-    this.eventHandler,
+    this.handler,
   ) {
     _handler = RtcEngineEventHandler(
-      onError: eventHandler.onError,
-      onJoinChannelSuccess: (connection, elapsed) =>
-          eventHandler.onJoinChannelSuccess?.call(),
-      onLeaveChannel: (connection, stats) =>
-          eventHandler.onLeaveChannel?.call(),
-      onUserJoined: (connection, remoteUid, elapsed) =>
-          eventHandler.onUserJoined?.call(remoteUid),
-      onUserOffline: (connection, remoteUid, reason) =>
-          eventHandler.onUserLeaved?.call(remoteUid),
-      onUserMuteVideo: (connection, remoteUid, muted) =>
-          eventHandler.onUserMuteVideo?.call(remoteUid, muted),
-      onUserMuteAudio: (connection, remoteUid, muted) =>
-          eventHandler.onUserMuteAudio?.call(remoteUid, muted),
-      onFirstRemoteVideoDecoded:
-          (connection, remoteUid, width, height, elapsed) => eventHandler
-              .onFirstRemoteVideoDecoded
-              ?.call(remoteUid, width, height),
-      onRemoteVideoStateChanged:
-          (connection, remoteUid, state, reason, elapsed) => eventHandler
-              .onRemoteVideoStateChanged
-              ?.call(remoteUid, state, reason),
-      onActiveSpeaker: (connection, uid) =>
-          eventHandler.onActiveSpeaker?.call(uid),
+      onError: handler.onError,
+      onJoinChannelSuccess: (connection, elapsed) {
+        handler.onJoinChannelSuccess?.call();
+      },
+      onLeaveChannel: (connection, stats) {
+        handler.onLeaveChannel?.call();
+      },
+      onUserJoined: (connection, remoteUid, elapsed) {
+        handler.onUserJoined?.call(remoteUid);
+      },
+      onUserOffline: (connection, remoteUid, reason) {
+        handler.onUserLeaved?.call(remoteUid);
+      },
+      onUserMuteVideo: (
+        connection,
+        remoteUid,
+        muted,
+      ) {
+        handler.onUserMuteVideo?.call(remoteUid, muted);
+      },
+      onUserMuteAudio: (
+        connection,
+        remoteUid,
+        muted,
+      ) {
+        handler.onUserMuteAudio?.call(remoteUid, muted);
+      },
+      onFirstRemoteVideoDecoded: (
+        connection,
+        remoteUid,
+        width,
+        height,
+        elapsed,
+      ) {
+        handler.onFirstRemoteVideoDecoded?.call(remoteUid, width, height);
+      },
+      onRemoteVideoStateChanged: (
+        connection,
+        remoteUid,
+        state,
+        reason,
+        elapsed,
+      ) {
+        handler.onRemoteVideoStateChanged?.call(remoteUid, state, reason);
+      },
+      onActiveSpeaker: (
+        connection,
+        uid,
+      ) {
+        handler.onActiveSpeaker?.call(uid);
+      },
     );
   }
   bool _engineHasInit = false;
-
+  RTCOptions? options;
+  String? agoraAppId;
   late RtcEngine _engine;
-  final EngineOptions options;
-  final AgoraRtcEngineEventHandler eventHandler;
+  final RTCEventHandler handler;
   RtcEngineEventHandler? _handler;
   Future<void> initEngine() async {
     if (_engineHasInit) return;
     _engineHasInit = true;
     _engine = createAgoraRtcEngine();
     await _engine.initialize(RtcEngineContext(
-      appId: options.agoraAppId,
-      audioScenario: options.audioScenarioType,
-      channelProfile: options.channelProfile,
-      areaCode: options.areaCode,
+      appId: agoraAppId,
+      audioScenario: options?.audioScenarioType,
+      channelProfile: options?.channelProfile,
+      areaCode: options?.areaCode,
     ));
     _engine.unregisterEventHandler(_handler!);
     _engine.registerEventHandler(_handler!);
@@ -128,7 +153,6 @@ class AgoraEngineManager {
 
     if (type == AgoraChatCallType.audio_1v1) {
       await enableAudio();
-      await enableAudioSpectrumMonitor();
     } else if (type == AgoraChatCallType.multi) {
     } else if (type == AgoraChatCallType.video_1v1) {}
 
@@ -140,6 +164,20 @@ class AgoraEngineManager {
         options: const ChannelMediaOptions());
   }
 
+  Future<void> leaveChannel() async {
+    if (!_engineHasInit) return;
+    await _engine.leaveChannel();
+  }
+
+  Future<void> clearCurrentCallInfo() async {
+    await leaveChannel();
+    await stopPreview();
+    await disableAudio();
+    await releaseEngine();
+  }
+}
+
+extension EngineActions on AgoraEngineManager {
   Future<void> enableVideo(int uid) async {
     if (!_engineHasInit) return;
     await _engine.enableVideo();
@@ -160,43 +198,44 @@ class AgoraEngineManager {
     await _engine.disableAudio();
   }
 
-  Future<void> enableAudioSpectrumMonitor() async {
+  Future<void> mute() async {
     if (!_engineHasInit) return;
-    _engine.enableAudioSpectrumMonitor();
+    await _engine.muteLocalAudioStream(true);
   }
 
-  Future<void> disableAudioSpectrumMonitor() async {
+  Future<void> unMute() async {
     if (!_engineHasInit) return;
-    _engine.disableAudioSpectrumMonitor();
+    await _engine.muteLocalAudioStream(false);
   }
 
   Future<void> startPreview() async {
     if (!_engineHasInit) return;
-    _engine.startPreview();
+    await _engine.startPreview();
   }
 
   Future<void> stopPreview() async {
     if (!_engineHasInit) return;
-    _engine.stopPreview();
+    await _engine.stopPreview();
   }
 
-  Future<void> startLocalVideo() async {
-    if (!_engineHasInit) return;
+  Widget? remoteView(int agoraUid, String channel) {
+    if (!_engineHasInit) return null;
+    return AgoraVideoView(
+      controller: VideoViewController.remote(
+        rtcEngine: _engine,
+        canvas: VideoCanvas(uid: agoraUid),
+        connection: RtcConnection(channelId: channel),
+      ),
+    );
   }
 
-  Future<void> stopLocalVideo() async {
-    if (!_engineHasInit) return;
-  }
-
-  Future<void> leaveChannel() async {
-    if (!_engineHasInit) return;
-    await _engine.leaveChannel();
-  }
-
-  Future<void> clearCurrentCallInfo() async {
-    await leaveChannel();
-    await stopPreview();
-    await disableAudio();
-    await releaseEngine();
+  Widget? localView() {
+    if (!_engineHasInit) return null;
+    return AgoraVideoView(
+      controller: VideoViewController(
+        rtcEngine: _engine,
+        canvas: const VideoCanvas(uid: 0),
+      ),
+    );
   }
 }
