@@ -110,7 +110,6 @@ class AgoraEngineManager {
     if (_engineHasInit) {
       _engine.unregisterEventHandler(_handler!);
       _engineHasInit = false;
-      debugPrint("release!!!!");
       await _engine.release();
     }
   }
