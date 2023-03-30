@@ -154,9 +154,9 @@ class _SingleCallPageState extends State<SingleCallPage> {
 
   @override
   void dispose() {
-    super.dispose();
-    removeListener();
     stopTimer();
+    removeListener();
+    super.dispose();
   }
 
   @override
@@ -208,131 +208,27 @@ class _SingleCallPageState extends State<SingleCallPage> {
     return content;
   }
 
-  List<Widget> twoWidgetList() {
-    List<Widget> list = [];
-    list.add(
-      CallButton(
-        selected: false,
-        callback: () async {
-          await AgoraChatCallManager.hangup(widget.callId!);
-        },
-        selectImage: Image.asset("images/hang_up.png"),
-        backgroundColor: const Color.fromRGBO(246, 50, 77, 1),
-      ),
-    );
-    list.add(
-      CallButton(
-        selected: false,
-        callback: () async {
-          await AgoraChatCallManager.answer(widget.callId!);
-          holding = false;
-          setState(() {
-            currentType = SingleCallType.audioCallCalling;
-          });
-        },
-        selectImage: Image.asset("images/answer.png"),
-        backgroundColor: const Color.fromRGBO(0, 206, 118, 1),
-      ),
-    );
-    return list;
-  }
-
-  List<Widget> threeWidgetsList() {
-    List<Widget> list = [];
-    list.add(
-      CallButton(
-        selected: speakerOn,
-        callback: () async {
-          if (!hasJoined) {
-            return;
-          }
-          speakerOn = !speakerOn;
-          if (speakerOn) {
-            await AgoraChatCallManager.speakerOn();
-          } else {
-            await AgoraChatCallManager.speakerOff();
-          }
-          setState(() {});
-        },
-        selectImage: Image.asset("images/speaker_on.png"),
-        unselectImage: Image.asset("images/speaker_off.png"),
-      ),
-    );
-    list.add(
-      CallButton(
-        selected: mute,
-        callback: () async {
-          mute = !mute;
-          if (mute) {
-            await AgoraChatCallManager.mute();
-          } else {
-            await AgoraChatCallManager.unMute();
-          }
-          setState(() {});
-        },
-        selectImage: Image.asset("images/mic_off.png"),
-        unselectImage: Image.asset("images/mic_on.png"),
-      ),
-    );
-
-    list.add(
-      CallButton(
-          selected: false,
-          callback: () {
-            AgoraChatCallManager.hangup(widget.callId!);
-          },
-          selectImage: Image.asset("images/hang_up.png"),
-          backgroundColor: const Color.fromRGBO(246, 50, 77, 1)),
-    );
-
-    return list;
-  }
-
   Widget audioCallInWidget() {
-    Widget content = SizedBox(
-      width: 100,
-      height: 100,
-      child: widget.avatar ??
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(100),
-              color: Colors.red,
-            ),
-          ),
-    );
+    Widget content = avatarWidget();
 
     content = Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         content,
         const Divider(height: 10),
-        Text(
-          widget.nickname ?? widget.userId,
-          style: widget.nicknameTextStyle ??
-              const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-        ),
+        nicknameWidget(),
         const Divider(height: 10),
-        Text(
-          'Audio Call',
-          textAlign: TextAlign.center,
-          style: widget.nicknameTextStyle ??
-              const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-                color: Colors.white,
-              ),
-        ),
+        timeWidget('Audio Call'),
       ],
     );
 
     Widget bottom = Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       mainAxisSize: MainAxisSize.max,
-      children: twoWidgetList(),
+      children: [
+        answerButton(),
+        hangupButton(),
+      ],
     );
 
     content = Column(
@@ -344,7 +240,39 @@ class _SingleCallPageState extends State<SingleCallPage> {
   }
 
   Widget audioCallOutWidget() {
-    Widget content = SizedBox(
+    Widget content = avatarWidget();
+
+    content = Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        content,
+        const Divider(height: 10),
+        nicknameWidget(),
+        const Divider(height: 10),
+        timeWidget(holding ? 'Calling...' : timerToStr(time)),
+      ],
+    );
+
+    Widget bottom = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        speakerButton(),
+        muteButton(),
+        hangupButton(),
+      ],
+    );
+
+    content = Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [content, bottom],
+    );
+
+    return content;
+  }
+
+  Widget avatarWidget() {
+    return SizedBox(
       width: 100,
       height: 100,
       child: widget.avatar ??
@@ -355,47 +283,94 @@ class _SingleCallPageState extends State<SingleCallPage> {
             ),
           ),
     );
+  }
 
-    content = Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        content,
-        const Divider(height: 10),
-        Text(
-          widget.nickname ?? widget.userId,
-          style: widget.nicknameTextStyle ??
-              const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-        ),
-        const Divider(height: 10),
-        Text(
-          holding ? 'Calling...' : timerToStr(time),
-          textAlign: TextAlign.center,
-          style: widget.nicknameTextStyle ??
-              const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-                color: Colors.white,
-              ),
-        ),
-      ],
+  Widget nicknameWidget() {
+    return Text(
+      widget.nickname ?? widget.userId,
+      style: widget.nicknameTextStyle ??
+          const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
     );
+  }
 
-    Widget bottom = Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      mainAxisSize: MainAxisSize.max,
-      children: threeWidgetsList(),
+  Widget hangupButton() {
+    return CallButton(
+      selected: false,
+      callback: () async {
+        await AgoraChatCallManager.hangup(widget.callId ?? callId!);
+      },
+      selectImage: Image.asset("images/hang_up.png"),
+      backgroundColor: const Color.fromRGBO(246, 50, 77, 1),
     );
+  }
 
-    content = Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [content, bottom],
+  Widget answerButton() {
+    return CallButton(
+      selected: false,
+      callback: () async {
+        await AgoraChatCallManager.answer(widget.callId!);
+        holding = false;
+        setState(() {
+          currentType = SingleCallType.audioCallCalling;
+        });
+      },
+      selectImage: Image.asset("images/answer.png"),
+      backgroundColor: const Color.fromRGBO(0, 206, 118, 1),
     );
+  }
 
-    return content;
+  Widget muteButton() {
+    return CallButton(
+      selected: mute,
+      callback: () async {
+        mute = !mute;
+        if (mute) {
+          await AgoraChatCallManager.mute();
+        } else {
+          await AgoraChatCallManager.unMute();
+        }
+        setState(() {});
+      },
+      selectImage: Image.asset("images/mic_off.png"),
+      unselectImage: Image.asset("images/mic_on.png"),
+    );
+  }
+
+  Widget speakerButton() {
+    return CallButton(
+      selected: speakerOn,
+      callback: () async {
+        if (!hasJoined) {
+          return;
+        }
+        speakerOn = !speakerOn;
+        if (speakerOn) {
+          await AgoraChatCallManager.speakerOn();
+        } else {
+          await AgoraChatCallManager.speakerOff();
+        }
+        setState(() {});
+      },
+      selectImage: Image.asset("images/speaker_on.png"),
+      unselectImage: Image.asset("images/speaker_off.png"),
+    );
+  }
+
+  Text timeWidget(String str) {
+    return Text(
+      str,
+      textAlign: TextAlign.center,
+      style: widget.timeTextStyle ??
+          const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            color: Colors.white,
+          ),
+    );
   }
 }
 
