@@ -51,6 +51,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
   bool startCalling = false;
   bool speakerOn = false;
   bool mute = false;
+  bool cameraOn = true;
   bool hasJoined = false;
   int time = 0;
   Timer? timer;
@@ -144,9 +145,11 @@ class _SingleCallPageState extends State<SingleCallPage> {
 
   void startTimer() {
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        time++;
-      });
+      if (mounted) {
+        setState(() {
+          time++;
+        });
+      }
     });
   }
 
@@ -182,7 +185,9 @@ class _SingleCallPageState extends State<SingleCallPage> {
         }
         break;
       case SingleCallType.videoCallOutHolding:
-        {}
+        {
+          content = videoCallOutWidget();
+        }
         break;
       case SingleCallType.videoCallInHolding:
         {
@@ -190,7 +195,9 @@ class _SingleCallPageState extends State<SingleCallPage> {
         }
         break;
       case SingleCallType.videoCallCalling:
-        {}
+        {
+          content = videoCallOutWidget();
+        }
         break;
     }
     content = Stack(
@@ -201,7 +208,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
         Positioned.fill(
           top: 55,
           bottom: 60,
-          child: content!,
+          child: content,
         ),
       ],
     );
@@ -210,9 +217,11 @@ class _SingleCallPageState extends State<SingleCallPage> {
 
   Widget backgroundWidget() {
     if (widget.type == AgoraChatCallType.video_1v1) {
-      return AgoraChatCallManager.getLocalVideoView() ??
-          widget.background ??
-          Container(color: Colors.grey);
+      Widget content = widget.background ?? Container(color: Colors.grey);
+
+      return cameraOn
+          ? AgoraChatCallManager.getLocalVideoView() ?? content
+          : content;
     }
     return widget.background ?? Container(color: Colors.grey);
   }
@@ -272,6 +281,34 @@ class _SingleCallPageState extends State<SingleCallPage> {
     return content;
   }
 
+  Widget videoCallOutWidget() {
+    Widget content = avatarWidget();
+
+    content = Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        content,
+        const Divider(height: 10, color: Colors.transparent),
+        nicknameWidget(),
+        const Divider(height: 10, color: Colors.transparent),
+        timeWidget(holding ? 'Calling...' : timerToStr(time)),
+      ],
+    );
+
+    Widget bottom = bottomWidget([
+      cameraButton(),
+      muteButton(),
+      hangupButton(),
+    ]);
+
+    content = Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [content, bottom],
+    );
+
+    return content;
+  }
+
   Widget videoCallInWidget() {
     Widget content = avatarWidget();
 
@@ -289,9 +326,9 @@ class _SingleCallPageState extends State<SingleCallPage> {
     Widget top = topWidget([switchCameraButton(), const SizedBox(width: 17.5)]);
 
     Widget bottom = bottomWidget([
-      speakerButton(),
-      muteButton(),
+      cameraButton(),
       hangupButton(),
+      answerButton(),
     ]);
 
     content = Column(
@@ -353,6 +390,25 @@ class _SingleCallPageState extends State<SingleCallPage> {
     );
   }
 
+  Widget cameraButton() {
+    return CallButton(
+      selected: cameraOn,
+      callback: () async {
+        cameraOn = !cameraOn;
+        if (cameraOn) {
+          await AgoraChatCallManager.cameraOn();
+        } else {
+          await AgoraChatCallManager.cameraOff();
+        }
+        setState(() {});
+      },
+      selectImage: Image.asset("images/video_on.png"),
+      unselectImage: Image.asset("images/video_off.png"),
+      backgroundColor:
+          cameraOn ? const Color.fromRGBO(255, 255, 255, 0.2) : Colors.white,
+    );
+  }
+
   Widget switchCameraButton() {
     return InkWell(
       child: Container(
@@ -385,7 +441,11 @@ class _SingleCallPageState extends State<SingleCallPage> {
         await AgoraChatCallManager.answer(widget.callId!);
         holding = false;
         setState(() {
-          currentType = SingleCallType.audioCallCalling;
+          if (widget.type == AgoraChatCallType.audio_1v1) {
+            currentType = SingleCallType.audioCallCalling;
+          } else {
+            currentType = SingleCallType.videoCallCalling;
+          }
         });
       },
       selectImage: Image.asset("images/answer.png"),

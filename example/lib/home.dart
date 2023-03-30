@@ -18,6 +18,9 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+
+    AgoraChatCallManager.initRTC();
+
     AgoraChatCallManager.setRTCTokenHandler((channel, agoraAppId, agoraUid) {
       return requestAppServerToken(channel, agoraAppId, agoraUid);
     });

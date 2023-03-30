@@ -88,6 +88,14 @@ class AgoraChatCallKitManagerImpl {
     }
   }
 
+  Future<void> initRTC() {
+    return _rtc.initRTC();
+  }
+
+  Future<void> releaseRTC() {
+    return _rtc.releaseRTC();
+  }
+
   Future<String> startSingleCall(
     String userId, {
     AgoraChatCallType type = AgoraChatCallType.audio_1v1,
@@ -316,12 +324,11 @@ extension RTCAction on AgoraChatCallKitManagerImpl {
   Future<void> speakerOn() => _rtc.enableSpeaker();
   Future<void> speakerOff() => _rtc.disableSpeaker();
 
-  AgoraChatCallWidget? getLocalVideoView() {
-    Widget? widget = _rtc.localView();
-    if (widget == null) return null;
+  AgoraChatCallWidget? getLocalVideoView([Widget? maskWidget]) {
     return AgoraChatCallWidget(
       agoraUid: 0,
-      child: widget,
+      backgroundWidget: maskWidget,
+      child: _rtc.localView(),
     );
   }
 

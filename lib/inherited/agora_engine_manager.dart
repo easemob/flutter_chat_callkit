@@ -55,8 +55,6 @@ class RTCEventHandler {
 }
 
 class AgoraEngineManager {
-  Map<int, VideoViewController> controllers = {};
-
   AgoraEngineManager(
     this.handler,
   ) {
@@ -120,6 +118,7 @@ class AgoraEngineManager {
   late RtcEngine _engine;
   final RTCEventHandler handler;
   RtcEngineEventHandler? _handler;
+
   Future<void> initEngine() async {
     if (_engineHasInit) return;
     _engineHasInit = true;
@@ -138,21 +137,13 @@ class AgoraEngineManager {
     _engine.registerEventHandler(_handler!);
   }
 
-  Future<void> releaseEngine([bool force = false]) async {
-    if (_engineHasInit || force) {
-      controllers.forEach((key, value) async {
-        await value.dispose();
-      });
+  Future<void> releaseEngine() async {
+    if (_engineHasInit) {
       _engineHasInit = false;
       try {
         await _engine.release();
         // ignore: empty_catches
-      } catch (e) {
-        debugPrint("rtc error ~~~");
-        // Future.delayed(const Duration(milliseconds: 100), () async {
-        //   await releaseEngine(true);
-        // });
-      }
+      } catch (e) {}
     }
   }
 
@@ -168,8 +159,6 @@ class AgoraEngineManager {
   ) async {
     debugPrint("will join channel $channel");
     try {
-      await releaseEngine();
-      await initEngine();
       if (type == AgoraChatCallType.audio_1v1) {
         await enableAudio();
       } else if (type == AgoraChatCallType.multi) {
@@ -180,10 +169,6 @@ class AgoraEngineManager {
           uid: uid,
           options: const ChannelMediaOptions());
     } catch (e) {
-      Future.delayed(const Duration(milliseconds: 100), () async {
-        await releaseEngine(true);
-      });
-
       handler.onError?.call(ErrorCodeType.errFailed,
           "General error with no classified reason. Try calling the method again");
     }
@@ -202,17 +187,20 @@ class AgoraEngineManager {
       await leaveChannel();
       await stopPreview();
       await disableAudio();
-      await releaseEngine();
       // ignore: empty_catches
-    } catch (e) {
-      Future.delayed(const Duration(milliseconds: 100), () async {
-        await releaseEngine(true);
-      });
-    }
+    } catch (e) {}
   }
 }
 
 extension EngineActions on AgoraEngineManager {
+  Future<void> initRTC() {
+    return initEngine();
+  }
+
+  Future<void> releaseRTC() {
+    return releaseEngine();
+  }
+
   Future<void> enableVideo() async {
     if (!_engineHasInit) return;
     await _engine.enableVideo();
@@ -287,16 +275,12 @@ extension EngineActions on AgoraEngineManager {
   Widget? localView() {
     if (!_engineHasInit) return null;
 
-    VideoViewController controller = VideoViewController(
-      rtcEngine: _engine,
-      canvas: const VideoCanvas(uid: 0),
-    );
-
-    controllers[0] = controller;
-
     return AgoraVideoView(
       key: const ValueKey("0"),
-      controller: controller,
+      controller: VideoViewController(
+        rtcEngine: _engine,
+        canvas: const VideoCanvas(uid: 0),
+      ),
     );
   }
 }

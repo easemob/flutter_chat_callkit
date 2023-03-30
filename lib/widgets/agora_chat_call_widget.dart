@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 class AgoraChatCallWidget extends StatefulWidget {
   const AgoraChatCallWidget({
     super.key,
-    this.channel,
     required this.agoraUid,
-    required this.child,
-    this.maskWidget,
+    this.channel,
+    this.child,
+    this.backgroundWidget,
   });
   final String? channel;
   final int agoraUid;
-  final Widget? maskWidget;
-  final Widget child;
+  final Widget? backgroundWidget;
+  final Widget? child;
 
   @override
   State<AgoraChatCallWidget> createState() => _AgoraChatCallWidgetState();
@@ -22,8 +22,8 @@ class _AgoraChatCallWidgetState extends State<AgoraChatCallWidget> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        widget.child,
-        Positioned.fill(child: widget.maskWidget ?? const Offstage()),
+        Positioned.fill(child: widget.backgroundWidget ?? const Offstage()),
+        widget.child ?? const Offstage(),
       ],
     );
   }

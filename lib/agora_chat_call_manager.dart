@@ -13,8 +13,13 @@ class AgoraChatCallManager {
     return _impl.startSingleCall(userId, type: type, ext: ext);
   }
 
-  static Future<void> initRTC() {}
-  static Future<void> releaseRTC() {}
+  static Future<void> initRTC() {
+    return _impl.initRTC();
+  }
+
+  static Future<void> releaseRTC() {
+    return _impl.releaseRTC();
+  }
 
   static Future<void> answer(String callId) {
     return _impl.answer(callId);
@@ -24,20 +29,14 @@ class AgoraChatCallManager {
     return _impl.hangup(callId);
   }
 
-  static Future<void> startPreview() {
-    return _impl.startPreview();
+  static Future<void> cameraOn() async {
+    await _impl.enableLocalView();
+    await _impl.startPreview();
   }
 
-  static Future<void> stopPreview() {
-    return _impl.stopPreview();
-  }
-
-  static Future<void> enableLocalView() {
-    return _impl.enableLocalView();
-  }
-
-  static Future<void> disableLocalView() {
-    return _impl.disableLocalView();
+  static Future<void> cameraOff() async {
+    await _impl.disableLocalView();
+    await _impl.stopPreview();
   }
 
   static AgoraChatCallWidget? getLocalVideoView() {
