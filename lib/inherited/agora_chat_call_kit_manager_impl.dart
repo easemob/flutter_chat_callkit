@@ -37,6 +37,12 @@ class AgoraChatCallKitManagerImpl {
 
     _rtc = AgoraEngineManager(
       RTCEventHandler(
+        onEngineInit: () {
+          handlerMap.forEach((key, value) => value.onEngineInit?.call());
+        },
+        onEngineRelease: () {
+          handlerMap.forEach((key, value) => value.onEngineRelease?.call());
+        },
         onJoinChannelSuccess: () {
           onJoinChannelSuccess();
         },

@@ -123,6 +123,8 @@ class _SingleCallPageState extends State<SingleCallPage> {
         onCallEnd: (callId, reason) {
           Navigator.of(context).pop();
         },
+        onEngineInit: () {},
+        onEngineRelease: () {},
       ),
     );
   }

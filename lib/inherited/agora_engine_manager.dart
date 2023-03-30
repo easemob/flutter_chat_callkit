@@ -29,7 +29,8 @@ class RTCEventHandler {
     this.onFirstRemoteVideoDecoded,
     this.onRemoteVideoStateChanged,
     this.onActiveSpeaker,
-    this.engineRelease,
+    this.onEngineRelease,
+    this.onEngineInit,
   });
 
   final void Function(
@@ -49,10 +50,13 @@ class RTCEventHandler {
           int remoteUid, RemoteVideoState state, RemoteVideoStateReason reason)?
       onRemoteVideoStateChanged;
   final void Function(int uid)? onActiveSpeaker;
-  final VoidCallback? engineRelease;
+  final VoidCallback? onEngineRelease;
+  final VoidCallback? onEngineInit;
 }
 
 class AgoraEngineManager {
+  Map<int, VideoViewController> controllers = {};
+
   AgoraEngineManager(
     this.handler,
   ) {
@@ -134,15 +138,18 @@ class AgoraEngineManager {
     _engine.registerEventHandler(_handler!);
   }
 
-  Future<void> releaseEngine() async {
-    if (_engineHasInit) {
-      _engine.unregisterEventHandler(_handler!);
-
+  Future<void> releaseEngine([bool force = false]) async {
+    if (_engineHasInit || force) {
+      _engineHasInit = false;
       try {
         await _engine.release();
         // ignore: empty_catches
-      } catch (e) {}
-      _engineHasInit = false;
+      } catch (e) {
+        debugPrint("rtc error ~~~");
+        // Future.delayed(const Duration(milliseconds: 100), () async {
+        //   await releaseEngine(true);
+        // });
+      }
     }
   }
 
@@ -170,8 +177,8 @@ class AgoraEngineManager {
           uid: uid,
           options: const ChannelMediaOptions());
     } catch (e) {
-      Future.delayed(const Duration(milliseconds: 1000), () async {
-        await releaseEngine();
+      Future.delayed(const Duration(milliseconds: 100), () async {
+        await releaseEngine(true);
       });
 
       handler.onError?.call(ErrorCodeType.errFailed,
@@ -195,8 +202,8 @@ class AgoraEngineManager {
       await releaseEngine();
       // ignore: empty_catches
     } catch (e) {
-      Future.delayed(const Duration(seconds: 1), () async {
-        await releaseEngine();
+      Future.delayed(const Duration(milliseconds: 100), () async {
+        await releaseEngine(true);
       });
     }
   }
@@ -276,12 +283,17 @@ extension EngineActions on AgoraEngineManager {
 
   Widget? localView() {
     if (!_engineHasInit) return null;
+
+    VideoViewController controller = VideoViewController(
+      rtcEngine: _engine,
+      canvas: const VideoCanvas(uid: 0),
+    );
+
+    controllers[0] = controller;
+
     return AgoraVideoView(
       key: const ValueKey("0"),
-      controller: VideoViewController(
-        rtcEngine: _engine,
-        canvas: const VideoCanvas(uid: 0),
-      ),
+      controller: controller,
     );
   }
 }
