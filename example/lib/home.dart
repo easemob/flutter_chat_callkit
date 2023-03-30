@@ -1,7 +1,9 @@
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
-
 import 'package:example/tools/token_tool.dart';
+
 import 'package:flutter/material.dart';
+
+import 'call_pages/single_call_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,27 +13,20 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String currentCallId = "";
+  final TextEditingController _controller = TextEditingController();
+
   @override
   void initState() {
     super.initState();
+    AgoraChatCallManager.setRTCTokenHandler((channel, agoraAppId, agoraUid) {
+      return requestAppServerToken(channel, agoraAppId, agoraUid);
+    });
+
     AgoraChatCallManager.addEventListener(
         "home",
         AgoraChatCallKitEventHandler(
-          onReceiveCall: (userId, callId, callType, ext) {
-            setState(() {
-              currentCallId = callId;
-            });
-          },
-          onCallEnd: (callId, reason) {
-            setState(() {
-              currentCallId = "";
-            });
-          },
+          onReceiveCall: onReceiveCall,
         ));
-
-    AgoraChatCallManager.setRTCTokenHandler((channel, agoraAppId, agoraUid) =>
-        requestAppServerToken(channel, agoraAppId, agoraUid));
   }
 
   @override
@@ -43,40 +38,83 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     Widget content = Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ElevatedButton(onPressed: _startCall, child: const Text("Call")),
-          ElevatedButton(onPressed: _answerCall, child: const Text("Answer")),
-          ElevatedButton(onPressed: _endCall, child: const Text("End")),
-        ],
+      child: SizedBox(
+        height: 200,
+        width: 300,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                cursorColor: Colors.blue,
+                decoration: const InputDecoration(
+                    filled: true,
+                    fillColor: Color.fromRGBO(242, 242, 242, 1),
+                    contentPadding: EdgeInsets.fromLTRB(30, 17, 30, 17),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.all(Radius.circular(30)),
+                    ),
+                    hintText: "UserId",
+                    hintStyle: TextStyle(color: Colors.grey)),
+                obscureText: false,
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: audioCall,
+                  child: const Text("Audio Call"),
+                ),
+                ElevatedButton(
+                  onPressed: videoCall,
+                  child: const Text("Video Call"),
+                ),
+              ],
+            )
+          ],
+        ),
       ),
     );
-
-    if (currentCallId.isNotEmpty) {
-      content = Stack(
-        children: [
-          AgoraChatCallManager.getLocalVideoView() ?? const Offstage(),
-          Positioned.fill(child: content),
-        ],
-      );
-    }
 
     return content;
   }
 
-  void _answerCall() async {
-    if (currentCallId.isEmpty) return;
-    await AgoraChatCallManager.answer(currentCallId);
+  void audioCall() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+      return SingleCallPage(
+        _controller.text,
+        type: AgoraChatCallType.audio_1v1,
+      );
+    }));
   }
 
-  void _startCall() async {
-    currentCallId = await AgoraChatCallManager.startSingleCall("du001");
-    debugPrint("call id $currentCallId");
+  void videoCall() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+      return SingleCallPage(
+        _controller.text,
+        type: AgoraChatCallType.video_1v1,
+      );
+    }));
   }
 
-  void _endCall() async {
-    await AgoraChatCallManager.hangup(currentCallId);
+  void onReceiveCall(
+    String userId,
+    String callId,
+    AgoraChatCallType callType,
+    Map<String, String>? ext,
+  ) {
+    debugPrint("onReceiveCall");
+    if (callType != AgoraChatCallType.multi) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+        return SingleCallPage(
+          userId,
+          callId: callId,
+          type: callType,
+        );
+      }));
+    }
   }
 }

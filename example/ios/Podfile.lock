@@ -33,8 +33,6 @@ PODS:
   - AgoraRtcEngine_iOS/SuperResolution (4.1.0)
   - AgoraRtcEngine_iOS/VirtualBackground (4.1.0)
   - AgoraRtcEngine_iOS/VQA (4.1.0)
-  - device_info (0.0.1):
-    - Flutter
   - Flutter (1.0.0)
   - HyphenateChat (4.0.0)
   - iris_event (0.0.1):
@@ -42,17 +40,13 @@ PODS:
     - Flutter
   - permission_handler_apple (9.0.4):
     - Flutter
-  - platform_device_id (0.0.1):
-    - Flutter
 
 DEPENDENCIES:
   - agora_chat_sdk (from `.symlinks/plugins/agora_chat_sdk/ios`)
   - agora_rtc_engine (from `.symlinks/plugins/agora_rtc_engine/ios`)
-  - device_info (from `.symlinks/plugins/device_info/ios`)
   - Flutter (from `Flutter`)
   - iris_event (from `.symlinks/plugins/iris_event/ios`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
-  - platform_device_id (from `.symlinks/plugins/platform_device_id/ios`)
 
 SPEC REPOS:
   trunk:
@@ -66,16 +60,12 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/agora_chat_sdk/ios"
   agora_rtc_engine:
     :path: ".symlinks/plugins/agora_rtc_engine/ios"
-  device_info:
-    :path: ".symlinks/plugins/device_info/ios"
   Flutter:
     :path: Flutter
   iris_event:
     :path: ".symlinks/plugins/iris_event/ios"
   permission_handler_apple:
     :path: ".symlinks/plugins/permission_handler_apple/ios"
-  platform_device_id:
-    :path: ".symlinks/plugins/platform_device_id/ios"
 
 SPEC CHECKSUMS:
   agora_chat_sdk: ce66fe2e4f70ee969f006d5c200fde9ac9613d45
@@ -83,12 +73,10 @@ SPEC CHECKSUMS:
   AgoraIrisEventFlutter_iOS: d7ee4acb57d9042dbe9d64229bfe9bf8e32b6f2f
   AgoraIrisRTC_iOS: 820fbab2d78d870a1bad4b1a02f950a390c73b48
   AgoraRtcEngine_iOS: 33f0136ad4196b2a31c8470e6b536fe77fb25f8b
-  device_info: d7d233b645a32c40dfdc212de5cf646ca482f175
   Flutter: f04841e97a9d0b0a8025694d0796dd46242b2854
   HyphenateChat: 9f6e4ac3b290e52cc0e52491f85d86097b35c285
   iris_event: fdcf9bbb53095fd9609ea19941df551d0398a789
   permission_handler_apple: 44366e37eaf29454a1e7b1b7d736c2cceaeb17ce
-  platform_device_id: 81b3e2993881f87d0c82ef151dc274df4869aef5
 
 PODFILE CHECKSUM: 7368163408c647b7eb699d0d788ba6718e18fb8d
 

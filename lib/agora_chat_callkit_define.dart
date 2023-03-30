@@ -12,7 +12,7 @@ enum AgoraChatCallEndReason {
   busy,
   noResponse,
   remoteNoResponse,
-  handleOnOtherDevice
+  handleOnOtherDevice,
 }
 
 enum AgoraChatCallErrorType {
@@ -29,6 +29,7 @@ enum AgoraChatCallState {
 }
 
 class AgoraChatCallErrorProcessCode {
+  static int genral = 0;
   static int invalidParam = 100;
   static int busy = 101;
   static int fetchTokenFail = 102;

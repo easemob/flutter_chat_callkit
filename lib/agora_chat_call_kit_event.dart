@@ -13,11 +13,9 @@ class AgoraChatCallKitEventHandler {
 
   final void Function(String callId, AgoraChatCallEndReason reason)? onCallEnd;
 
-  final void Function(String channel, String userId, int agoraUid)?
-      onUserLeaved;
+  final void Function(String userId, int agoraUid)? onUserLeaved;
 
-  final void Function(String channel, String userId, int agoraUid)?
-      onUserJoined;
+  final void Function(String userId, int agoraUid)? onUserJoined;
 
   final void Function(String channel)? onJoinedChannel;
 

@@ -22,18 +22,26 @@ class AgoraChatCallManager {
   }
 
   static Future<void> startPreview() {
-    return _impl.enablePreview();
+    return _impl.startPreview();
   }
 
   static Future<void> stopPreview() {
-    return _impl.disablePreview();
+    return _impl.stopPreview();
+  }
+
+  static Future<void> enableLocalView() {
+    return _impl.enableLocalView();
+  }
+
+  static Future<void> disableLocalView() {
+    return _impl.disableLocalView();
   }
 
   static AgoraChatCallWidget? getLocalVideoView() {
     return _impl.getLocalVideoView();
   }
 
-  static AgoraChatCallWidget? getRemoveVideoView(int agoraUid) {
+  static AgoraChatCallWidget? getRemoteVideoView(int agoraUid) {
     return _impl.getRemoteVideoView(agoraUid);
   }
 
@@ -47,6 +55,14 @@ class AgoraChatCallManager {
 
   static Future<void> unMute() {
     return _impl.unMute();
+  }
+
+  static Future<void> speakerOn() {
+    return _impl.speakerOn();
+  }
+
+  static Future<void> speakerOff() {
+    return _impl.speakerOff();
   }
 
   static void setRTCTokenHandler(RtcTokenHandler handler) {

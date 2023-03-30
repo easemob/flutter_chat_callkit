@@ -68,6 +68,7 @@ class AgoraChatManager {
   ///      主叫方收到后，判断map中是否存在对应的callId，如果不存在，则表示本callId对应的通话无效，反之则为有效，之后将结果告知被叫方。
   final Map<String, Timer> callTimerDic = {};
   final Map<String, Timer> alertTimerDic = {};
+  Timer? ringTimer;
 
   Timer? confirmTimer;
 
@@ -83,7 +84,7 @@ class AgoraChatManager {
     model.hasJoined = true;
   }
 
-  void onUserLeave() {
+  void clearInfo() {
     if (model.curCall != null) {
       model.hasJoined = false;
       model.state = AgoraChatCallState.idle;
@@ -103,7 +104,7 @@ class AgoraChatManager {
   void parseMsg(ChatMessage message) async {
     Map ext = message.attributes ?? {};
     if (!ext.containsKey(kMsgType)) return;
-
+    printMsg("parseMsg", message);
     final from = message.from!;
     final msgType = ext[kMsgType];
     final callId = ext[kCallId] ?? "";
@@ -186,6 +187,17 @@ class AgoraChatManager {
             alertTimerDic.clear();
           }
           model.recvCalls.remove(callId);
+          ringTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+            timer.cancel();
+            ringTimer = null;
+            if (model.curCall?.callId == callId) {
+              handler.onCallEndReason.call(
+                model.curCall!.callId,
+                AgoraChatCallEndReason.remoteNoResponse,
+              );
+              model.state = AgoraChatCallState.idle;
+            }
+          });
         }
       }
     }
@@ -221,6 +233,8 @@ class AgoraChatManager {
             sendConfirmAnswerMsgToCallee(from, callId, result, calleeDevId);
             if (result == kAcceptResult) {
               model.state = AgoraChatCallState.answering;
+              ringTimer?.cancel();
+              ringTimer = null;
             }
           }
         } else {
@@ -231,6 +245,8 @@ class AgoraChatManager {
                 // TODO: 如果对方同意，同时按下了视频转音频，需要告知ui
               }
               model.state = AgoraChatCallState.answering;
+              ringTimer?.cancel();
+              ringTimer = null;
             } else {
               handler.onCallEndReason.call(
                 model.curCall!.callId,
@@ -255,6 +271,8 @@ class AgoraChatManager {
         if (model.curDevId == calleeDevId) {
           if (result == kAcceptResult) {
             model.state = AgoraChatCallState.answering;
+            ringTimer?.cancel();
+            ringTimer = null;
             if (model.curCall?.callType != AgoraChatCallType.audio_1v1) {
               // 更新本地摄像头数据
             }
@@ -388,7 +406,7 @@ class AgoraChatManager {
     msg.attributes = attributes;
     ChatClient.getInstance.chatManager.sendMessage(msg);
     confirmTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      confirmTimer?.cancel();
+      timer.cancel();
       confirmTimer = null;
     });
 
@@ -473,6 +491,9 @@ class AgoraChatManager {
 
     confirmTimer?.cancel();
     confirmTimer = null;
+
+    ringTimer?.cancel();
+    ringTimer = null;
   }
 
   void dispose() {
@@ -512,6 +533,8 @@ class AgoraChatManager {
       callTimerDic[userId] = Timer.periodic(
         timeoutDuration,
         (timer) {
+          timer.cancel();
+          callTimerDic.remove(userId);
           if (model.curCall != null) {
             sendCancelCallMsgToCallee(userId, model.curCall!.callId);
             if (model.curCall!.callType != AgoraChatCallType.multi) {
@@ -553,6 +576,9 @@ class AgoraChatManager {
 
   Future<void> answerCall(String callId) async {
     if (model.curCall?.callId == callId) {
+      if (model.curCall!.isCaller == true) {
+        return;
+      }
       sendAnswerMsg(
         model.curCall!.remoteUserAccount,
         callId,

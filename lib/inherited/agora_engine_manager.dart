@@ -29,6 +29,7 @@ class RTCEventHandler {
     this.onFirstRemoteVideoDecoded,
     this.onRemoteVideoStateChanged,
     this.onActiveSpeaker,
+    this.engineRelease,
   });
 
   final void Function(
@@ -48,6 +49,7 @@ class RTCEventHandler {
           int remoteUid, RemoteVideoState state, RemoteVideoStateReason reason)?
       onRemoteVideoStateChanged;
   final void Function(int uid)? onActiveSpeaker;
+  final VoidCallback? engineRelease;
 }
 
 class AgoraEngineManager {
@@ -116,7 +118,7 @@ class AgoraEngineManager {
   RtcEngineEventHandler? _handler;
   Future<void> initEngine() async {
     if (_engineHasInit) return;
-    _engineHasInit = true;
+
     _engine = createAgoraRtcEngine();
     await _engine.initialize(RtcEngineContext(
       appId: agoraAppId,
@@ -124,23 +126,25 @@ class AgoraEngineManager {
       channelProfile: options?.channelProfile,
       areaCode: options?.areaCode,
     ));
+    _engineHasInit = true;
+    await _engine.setClientRole(role: ClientRoleType.clientRoleBroadcaster);
+    await _engine
+        .setChannelProfile(ChannelProfileType.channelProfileLiveBroadcasting);
+    await _engine.setDefaultAudioRouteToSpeakerphone(true);
     _engine.unregisterEventHandler(_handler!);
     _engine.registerEventHandler(_handler!);
-    _engine.setClientRole(role: ClientRoleType.clientRoleBroadcaster);
-    _engine
-        .setChannelProfile(ChannelProfileType.channelProfileLiveBroadcasting);
   }
 
   Future<void> releaseEngine() async {
     if (_engineHasInit) {
       _engine.unregisterEventHandler(_handler!);
-      _engineHasInit = false;
       await _engine.release();
+      _engineHasInit = false;
     }
   }
 
-  void dispose() {
-    releaseEngine();
+  void dispose() async {
+    await releaseEngine();
   }
 
   Future<void> joinChannel(
@@ -156,6 +160,11 @@ class AgoraEngineManager {
     } else if (type == AgoraChatCallType.multi) {
     } else if (type == AgoraChatCallType.video_1v1) {}
 
+    if (!_engineHasInit) {
+      handler.onError?.call(ErrorCodeType.errFailed,
+          "General error with no classified reason. Try calling the method again");
+      return;
+    }
     debugPrint("will join channel $channel");
     await _engine.joinChannel(
         token: token,
@@ -178,12 +187,12 @@ class AgoraEngineManager {
 }
 
 extension EngineActions on AgoraEngineManager {
-  Future<void> enableVideo(int uid) async {
+  Future<void> enableVideo() async {
     if (!_engineHasInit) return;
     await _engine.enableVideo();
   }
 
-  Future<void> disableVideo(int uid) async {
+  Future<void> disableVideo() async {
     if (!_engineHasInit) return;
     await _engine.disableVideo();
   }
@@ -200,12 +209,22 @@ extension EngineActions on AgoraEngineManager {
 
   Future<void> mute() async {
     if (!_engineHasInit) return;
-    await _engine.muteLocalAudioStream(true);
+    await _engine.enableLocalAudio(false);
   }
 
   Future<void> unMute() async {
     if (!_engineHasInit) return;
-    await _engine.muteLocalAudioStream(false);
+    await _engine.enableLocalAudio(true);
+  }
+
+  Future<void> enableSpeaker() async {
+    if (!_engineHasInit) return;
+    await _engine.setEnableSpeakerphone(true);
+  }
+
+  Future<void> disableSpeaker() async {
+    if (!_engineHasInit) return;
+    await _engine.setEnableSpeakerphone(false);
   }
 
   Future<void> startPreview() async {
@@ -216,6 +235,16 @@ extension EngineActions on AgoraEngineManager {
   Future<void> stopPreview() async {
     if (!_engineHasInit) return;
     await _engine.stopPreview();
+  }
+
+  Future<void> enableLocalView() async {
+    if (!_engineHasInit) return;
+    await _engine.enableLocalVideo(true);
+  }
+
+  Future<void> disableLocalView() async {
+    if (!_engineHasInit) return;
+    await _engine.enableLocalVideo(false);
   }
 
   Widget? remoteView(int agoraUid, String channel) {
@@ -232,6 +261,7 @@ extension EngineActions on AgoraEngineManager {
   Widget? localView() {
     if (!_engineHasInit) return null;
     return AgoraVideoView(
+      key: const ValueKey("0"),
       controller: VideoViewController(
         rtcEngine: _engine,
         canvas: const VideoCanvas(uid: 0),
