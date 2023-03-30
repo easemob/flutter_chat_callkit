@@ -67,6 +67,7 @@ class AgoraEngineManager {
         handler.onLeaveChannel?.call();
       },
       onUserJoined: (connection, remoteUid, elapsed) {
+        debugPrint("userJoin!!!");
         handler.onUserJoined?.call(remoteUid);
       },
       onUserOffline: (connection, remoteUid, reason) {
@@ -249,6 +250,11 @@ extension EngineActions on AgoraEngineManager {
   Future<void> stopPreview() async {
     if (!_engineHasInit) return;
     await _engine.stopPreview();
+  }
+
+  Future<void> switchCamera() async {
+    if (!_engineHasInit) return;
+    await _engine.switchCamera();
   }
 
   Future<void> enableLocalView() async {

@@ -313,6 +313,7 @@ extension RTCEvent on AgoraChatCallKitManagerImpl {
 extension RTCAction on AgoraChatCallKitManagerImpl {
   Future<void> startPreview() => _rtc.startPreview();
   Future<void> stopPreview() => _rtc.stopPreview();
+  Future<void> switchCamera() => _rtc.switchCamera();
   Future<void> enableLocalView() => _rtc.enableLocalView();
   Future<void> disableLocalView() => _rtc.disableLocalView();
   Future<void> enableAudio() => _rtc.enableAudio();

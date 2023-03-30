@@ -39,6 +39,10 @@ class AgoraChatCallManager {
     await _impl.stopPreview();
   }
 
+  static Future<void> switchCamera() {
+    return _impl.switchCamera();
+  }
+
   static AgoraChatCallWidget? getLocalVideoView() {
     return _impl.getLocalVideoView();
   }

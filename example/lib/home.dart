@@ -19,8 +19,6 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
 
-    AgoraChatCallManager.initRTC();
-
     AgoraChatCallManager.setRTCTokenHandler((channel, agoraAppId, agoraUid) {
       return requestAppServerToken(channel, agoraAppId, agoraUid);
     });
@@ -85,22 +83,12 @@ class _HomePageState extends State<HomePage> {
     return content;
   }
 
-  void audioCall() {
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-      return SingleCallPage(
-        _controller.text,
-        type: AgoraChatCallType.audio_1v1,
-      );
-    }));
+  void audioCall() async {
+    pushToSingleCallPage(_controller.text, AgoraChatCallType.audio_1v1);
   }
 
-  void videoCall() {
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-      return SingleCallPage(
-        _controller.text,
-        type: AgoraChatCallType.video_1v1,
-      );
-    }));
+  void videoCall() async {
+    pushToSingleCallPage(_controller.text, AgoraChatCallType.video_1v1);
   }
 
   void onReceiveCall(
@@ -108,15 +96,18 @@ class _HomePageState extends State<HomePage> {
     String callId,
     AgoraChatCallType callType,
     Map<String, String>? ext,
-  ) {
-    if (callType != AgoraChatCallType.multi) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-        return SingleCallPage(
-          userId,
-          callId: callId,
-          type: callType,
-        );
-      }));
-    }
+  ) async {
+    pushToSingleCallPage(userId, callType, callId);
+  }
+
+  void pushToSingleCallPage(String userId, AgoraChatCallType callType,
+      [String? callId]) async {
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+      return SingleCallPage(
+        userId,
+        callId: callId,
+        type: callType,
+      );
+    }));
   }
 }

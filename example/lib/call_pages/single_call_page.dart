@@ -42,6 +42,7 @@ class SingleCallPage extends StatefulWidget {
   final AgoraChatCallType type;
   final String? callId;
   final bool calling;
+
   @override
   State<SingleCallPage> createState() => _SingleCallPageState();
 }
@@ -57,12 +58,20 @@ class _SingleCallPageState extends State<SingleCallPage> {
   Timer? timer;
   String? callId;
 
+  Widget? floatWidget;
+
+  bool hasInit = false;
+
   late SingleCallType currentType;
 
   @override
   void initState() {
     super.initState();
-
+    AgoraChatCallManager.initRTC().then((value) {
+      setState(() {
+        hasInit = true;
+      });
+    });
     addListener();
 
     if (widget.callId != null) {
@@ -136,6 +145,8 @@ class _SingleCallPageState extends State<SingleCallPage> {
 
   void onUserJoined(String userId, int agoraUid) {
     if (userId == widget.userId) {
+      debugPrint("onUserJoined");
+      floatWidget = AgoraChatCallManager.getRemoteVideoView(agoraUid);
       setState(() {
         holding = false;
       });
@@ -162,6 +173,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
   void dispose() {
     stopTimer();
     removeListener();
+    AgoraChatCallManager.releaseRTC();
     super.dispose();
   }
 
@@ -200,17 +212,20 @@ class _SingleCallPageState extends State<SingleCallPage> {
         }
         break;
     }
+
+    List<Widget> list = [
+      Positioned.fill(
+        child: widget.background ?? backgroundWidget(),
+      ),
+      Positioned.fill(
+        top: 55,
+        bottom: 60,
+        child: content,
+      ),
+    ];
+
     content = Stack(
-      children: [
-        Positioned.fill(
-          child: widget.background ?? backgroundWidget(),
-        ),
-        Positioned.fill(
-          top: 55,
-          bottom: 60,
-          child: content,
-        ),
-      ],
+      children: list,
     );
     return content;
   }
@@ -218,9 +233,10 @@ class _SingleCallPageState extends State<SingleCallPage> {
   Widget backgroundWidget() {
     if (widget.type == AgoraChatCallType.video_1v1) {
       Widget content = widget.background ?? Container(color: Colors.grey);
-
+      if (!hasInit) {}
       return cameraOn
-          ? AgoraChatCallManager.getLocalVideoView() ?? content
+          ? (hasInit ? AgoraChatCallManager.getLocalVideoView() : content) ??
+              content
           : content;
     }
     return widget.background ?? Container(color: Colors.grey);
@@ -294,12 +310,20 @@ class _SingleCallPageState extends State<SingleCallPage> {
         timeWidget(holding ? 'Calling...' : timerToStr(time)),
       ],
     );
-
+    Widget top = topWidget([switchCameraButton(), const SizedBox(width: 17.5)]);
     Widget bottom = bottomWidget([
       cameraButton(),
       muteButton(),
       hangupButton(),
     ]);
+
+    content = Column(
+      children: [
+        top,
+        const Divider(height: 30, color: Colors.transparent),
+        content
+      ],
+    );
 
     content = Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -411,6 +435,9 @@ class _SingleCallPageState extends State<SingleCallPage> {
 
   Widget switchCameraButton() {
     return InkWell(
+      onTap: () {
+        AgoraChatCallManager.switchCamera();
+      },
       child: Container(
         width: 40,
         height: 40,
