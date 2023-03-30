@@ -106,7 +106,6 @@ class _HomePageState extends State<HomePage> {
     AgoraChatCallType callType,
     Map<String, String>? ext,
   ) {
-    debugPrint("onReceiveCall");
     if (callType != AgoraChatCallType.multi) {
       Navigator.of(context).push(MaterialPageRoute(builder: (context) {
         return SingleCallPage(

@@ -161,8 +161,6 @@ class _SingleCallPageState extends State<SingleCallPage> {
 
   @override
   Widget build(BuildContext context) {
-    // 有widget.callId表示是呼入
-
     Widget? content;
     switch (currentType) {
       case SingleCallType.audioCallOutHolding:
@@ -171,10 +169,14 @@ class _SingleCallPageState extends State<SingleCallPage> {
         }
         break;
       case SingleCallType.audioCallInHolding:
-        {}
+        {
+          content = audioCallInWidget();
+        }
         break;
       case SingleCallType.audioCallCalling:
-        {}
+        {
+          content = audioCallOutWidget();
+        }
         break;
       case SingleCallType.videoCallOutHolding:
         {}
@@ -208,6 +210,30 @@ class _SingleCallPageState extends State<SingleCallPage> {
 
   List<Widget> twoWidgetList() {
     List<Widget> list = [];
+    list.add(
+      CallButton(
+        selected: false,
+        callback: () async {
+          await AgoraChatCallManager.hangup(widget.callId!);
+        },
+        selectImage: Image.asset("images/hang_up.png"),
+        backgroundColor: const Color.fromRGBO(246, 50, 77, 1),
+      ),
+    );
+    list.add(
+      CallButton(
+        selected: false,
+        callback: () async {
+          await AgoraChatCallManager.answer(widget.callId!);
+          holding = false;
+          setState(() {
+            currentType = SingleCallType.audioCallCalling;
+          });
+        },
+        selectImage: Image.asset("images/answer.png"),
+        backgroundColor: const Color.fromRGBO(0, 206, 118, 1),
+      ),
+    );
     return list;
   }
 
@@ -253,7 +279,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
       CallButton(
           selected: false,
           callback: () {
-            AgoraChatCallManager.hangup(callId!);
+            AgoraChatCallManager.hangup(widget.callId!);
           },
           selectImage: Image.asset("images/hang_up.png"),
           backgroundColor: const Color.fromRGBO(246, 50, 77, 1)),
@@ -262,7 +288,60 @@ class _SingleCallPageState extends State<SingleCallPage> {
     return list;
   }
 
-  // Widget audioCallInWidget() {}
+  Widget audioCallInWidget() {
+    Widget content = SizedBox(
+      width: 100,
+      height: 100,
+      child: widget.avatar ??
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(100),
+              color: Colors.red,
+            ),
+          ),
+    );
+
+    content = Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        content,
+        const Divider(height: 10),
+        Text(
+          widget.nickname ?? widget.userId,
+          style: widget.nicknameTextStyle ??
+              const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+        ),
+        const Divider(height: 10),
+        Text(
+          'Audio Call',
+          textAlign: TextAlign.center,
+          style: widget.nicknameTextStyle ??
+              const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                color: Colors.white,
+              ),
+        ),
+      ],
+    );
+
+    Widget bottom = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      mainAxisSize: MainAxisSize.max,
+      children: twoWidgetList(),
+    );
+
+    content = Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [content, bottom],
+    );
+
+    return content;
+  }
 
   Widget audioCallOutWidget() {
     Widget content = SizedBox(
@@ -303,12 +382,6 @@ class _SingleCallPageState extends State<SingleCallPage> {
               ),
         ),
       ],
-    );
-
-    content = Row(
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [content],
     );
 
     Widget bottom = Row(

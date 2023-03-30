@@ -172,7 +172,7 @@ class AgoraEngineManager {
       Future.delayed(const Duration(milliseconds: 500), () async {
         await releaseEngine();
       });
-      debugPrint("error run !!!!");
+
       handler.onError?.call(ErrorCodeType.errFailed,
           "General error with no classified reason. Try calling the method again");
     }
@@ -182,9 +182,8 @@ class AgoraEngineManager {
     if (!_engineHasInit) return;
     try {
       await _engine.leaveChannel();
-    } catch (e) {
-      debugPrint("leave channel error!!");
-    }
+      // ignore: empty_catches
+    } catch (e) {}
   }
 
   Future<void> clearCurrentCallInfo() async {
@@ -193,9 +192,8 @@ class AgoraEngineManager {
       await stopPreview();
       await disableAudio();
       await releaseEngine();
-    } catch (e) {
-      debugPrint("error ---- clearCurrentCallInfo");
-    }
+      // ignore: empty_catches
+    } catch (e) {}
   }
 }
 
