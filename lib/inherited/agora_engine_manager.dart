@@ -140,6 +140,9 @@ class AgoraEngineManager {
 
   Future<void> releaseEngine([bool force = false]) async {
     if (_engineHasInit || force) {
+      controllers.forEach((key, value) async {
+        await value.dispose();
+      });
       _engineHasInit = false;
       try {
         await _engine.release();

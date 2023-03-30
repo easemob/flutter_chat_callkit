@@ -13,6 +13,9 @@ class AgoraChatCallManager {
     return _impl.startSingleCall(userId, type: type, ext: ext);
   }
 
+  static Future<void> initRTC() {}
+  static Future<void> releaseRTC() {}
+
   static Future<void> answer(String callId) {
     return _impl.answer(callId);
   }
