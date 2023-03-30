@@ -118,7 +118,7 @@ class AgoraEngineManager {
   RtcEngineEventHandler? _handler;
   Future<void> initEngine() async {
     if (_engineHasInit) return;
-
+    _engineHasInit = true;
     _engine = createAgoraRtcEngine();
     await _engine.initialize(RtcEngineContext(
       appId: agoraAppId,
@@ -126,7 +126,7 @@ class AgoraEngineManager {
       channelProfile: options?.channelProfile,
       areaCode: options?.areaCode,
     ));
-    _engineHasInit = true;
+
     await _engine.setClientRole(role: ClientRoleType.clientRoleBroadcaster);
     await _engine
         .setChannelProfile(ChannelProfileType.channelProfileLiveBroadcasting);
@@ -153,6 +153,7 @@ class AgoraEngineManager {
     String channel,
     int uid,
   ) async {
+    await releaseEngine();
     await initEngine();
 
     if (type == AgoraChatCallType.audio_1v1) {
@@ -160,29 +161,41 @@ class AgoraEngineManager {
     } else if (type == AgoraChatCallType.multi) {
     } else if (type == AgoraChatCallType.video_1v1) {}
 
-    if (!_engineHasInit) {
+    debugPrint("will join channel $channel");
+    try {
+      await _engine.joinChannel(
+          token: token,
+          channelId: channel,
+          uid: uid,
+          options: const ChannelMediaOptions());
+    } catch (e) {
+      Future.delayed(const Duration(milliseconds: 500), () async {
+        await releaseEngine();
+      });
+      debugPrint("error run !!!!");
       handler.onError?.call(ErrorCodeType.errFailed,
           "General error with no classified reason. Try calling the method again");
-      return;
     }
-    debugPrint("will join channel $channel");
-    await _engine.joinChannel(
-        token: token,
-        channelId: channel,
-        uid: uid,
-        options: const ChannelMediaOptions());
   }
 
   Future<void> leaveChannel() async {
     if (!_engineHasInit) return;
-    await _engine.leaveChannel();
+    try {
+      await _engine.leaveChannel();
+    } catch (e) {
+      debugPrint("leave channel error!!");
+    }
   }
 
   Future<void> clearCurrentCallInfo() async {
-    await leaveChannel();
-    await stopPreview();
-    await disableAudio();
-    await releaseEngine();
+    try {
+      await leaveChannel();
+      await stopPreview();
+      await disableAudio();
+      await releaseEngine();
+    } catch (e) {
+      debugPrint("error ---- clearCurrentCallInfo");
+    }
   }
 }
 
