@@ -77,7 +77,7 @@ class AgoraChatManager {
   }
 
   void printMsg(String method, ChatMessage msg) {
-    debugPrint("-----------method: $method, ${msg.toJson().toString()}");
+    // debugPrint("-----------method: $method, ${msg.toJson().toString()}");
   }
 
   void onUserJoined() {

@@ -126,7 +126,6 @@ class AgoraEngineManager {
       channelProfile: options?.channelProfile,
       areaCode: options?.areaCode,
     ));
-
     await _engine.setClientRole(role: ClientRoleType.clientRoleBroadcaster);
     await _engine
         .setChannelProfile(ChannelProfileType.channelProfileLiveBroadcasting);
@@ -138,7 +137,11 @@ class AgoraEngineManager {
   Future<void> releaseEngine() async {
     if (_engineHasInit) {
       _engine.unregisterEventHandler(_handler!);
-      await _engine.release();
+
+      try {
+        await _engine.release();
+        // ignore: empty_catches
+      } catch (e) {}
       _engineHasInit = false;
     }
   }
@@ -153,23 +156,21 @@ class AgoraEngineManager {
     String channel,
     int uid,
   ) async {
-    await releaseEngine();
-    await initEngine();
-
-    if (type == AgoraChatCallType.audio_1v1) {
-      await enableAudio();
-    } else if (type == AgoraChatCallType.multi) {
-    } else if (type == AgoraChatCallType.video_1v1) {}
-
     debugPrint("will join channel $channel");
     try {
+      await releaseEngine();
+      await initEngine();
+      if (type == AgoraChatCallType.audio_1v1) {
+        await enableAudio();
+      } else if (type == AgoraChatCallType.multi) {
+      } else if (type == AgoraChatCallType.video_1v1) {}
       await _engine.joinChannel(
           token: token,
           channelId: channel,
           uid: uid,
           options: const ChannelMediaOptions());
     } catch (e) {
-      Future.delayed(const Duration(milliseconds: 500), () async {
+      Future.delayed(const Duration(milliseconds: 1000), () async {
         await releaseEngine();
       });
 
@@ -193,7 +194,11 @@ class AgoraEngineManager {
       await disableAudio();
       await releaseEngine();
       // ignore: empty_catches
-    } catch (e) {}
+    } catch (e) {
+      Future.delayed(const Duration(seconds: 1), () async {
+        await releaseEngine();
+      });
+    }
   }
 }
 

@@ -169,18 +169,20 @@ extension ChatEvent on AgoraChatCallKitManagerImpl {
         {
           if (_chat.model.curCall == null) return;
           await _rtc.initEngine();
-          if (_chat.model.curCall!.callType == AgoraChatCallType.video_1v1) {
-            // await _rtc.enableVideo();
-            await _rtc.startPreview();
+          if (_chat.model.curCall != null) {
+            if (_chat.model.curCall!.callType == AgoraChatCallType.video_1v1) {
+              // await _rtc.enableVideo();
+              await _rtc.startPreview();
+            }
+            handlerMap.forEach((key, value) {
+              value.onReceiveCall?.call(
+                _chat.model.curCall!.remoteUserAccount,
+                _chat.model.curCall!.callId,
+                _chat.model.curCall!.callType,
+                _chat.model.curCall!.ext,
+              );
+            });
           }
-          handlerMap.forEach((key, value) {
-            value.onReceiveCall?.call(
-              _chat.model.curCall!.remoteUserAccount,
-              _chat.model.curCall!.callId,
-              _chat.model.curCall!.callType,
-              _chat.model.curCall!.ext,
-            );
-          });
         }
         break;
       case AgoraChatCallState.answering:
@@ -219,11 +221,12 @@ extension RTCEvent on AgoraChatCallKitManagerImpl {
     if (_chat.model.curCall == null) return;
     await setDefaultModeType();
     _chat.onUserJoined();
-
-    String channel = _chat.model.curCall!.channel;
-    handlerMap.forEach((key, value) {
-      value.onJoinedChannel?.call(channel);
-    });
+    if (_chat.model.curCall != null) {
+      String channel = _chat.model.curCall!.channel;
+      handlerMap.forEach((key, value) {
+        value.onJoinedChannel?.call(channel);
+      });
+    }
   }
 
   void onLeaveChannel() {}
@@ -283,7 +286,8 @@ extension RTCEvent on AgoraChatCallKitManagerImpl {
   void onRTCError(ErrorCodeType err, String desc) {
     _chat.clearInfo();
     if (err == ErrorCodeType.errTokenExpired ||
-        err == ErrorCodeType.errInvalidToken) {
+        err == ErrorCodeType.errInvalidToken ||
+        err == ErrorCodeType.errFailed) {
       handlerMap.forEach((key, value) {
         value.onError?.call(AgoraChatCallError.rtc(err.index, "RTC Error"));
       });

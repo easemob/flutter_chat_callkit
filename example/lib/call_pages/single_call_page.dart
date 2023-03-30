@@ -207,9 +207,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
   }
 
   Widget backgroundWidget() {
-    return AgoraChatCallManager.getLocalVideoView(
-            Container(color: Colors.grey)) ??
-        Container(color: Colors.grey);
+    return Container(color: Colors.grey);
   }
 
   Widget audioCallInWidget() {
