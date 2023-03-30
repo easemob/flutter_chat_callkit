@@ -61,6 +61,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
   @override
   void initState() {
     super.initState();
+
     addListener();
 
     if (widget.callId != null) {
@@ -182,7 +183,9 @@ class _SingleCallPageState extends State<SingleCallPage> {
         {}
         break;
       case SingleCallType.videoCallInHolding:
-        {}
+        {
+          content = videoCallInWidget();
+        }
         break;
       case SingleCallType.videoCallCalling:
         {}
@@ -191,21 +194,22 @@ class _SingleCallPageState extends State<SingleCallPage> {
     content = Stack(
       children: [
         Positioned.fill(
-          child: widget.background ??
-              Container(
-                color: Colors.grey,
-              ),
+          child: widget.background ?? backgroundWidget(),
         ),
         Positioned.fill(
-          top: 40,
+          top: 55,
           bottom: 60,
-          child: SafeArea(
-            child: content!,
-          ),
+          child: content!,
         ),
       ],
     );
     return content;
+  }
+
+  Widget backgroundWidget() {
+    return AgoraChatCallManager.getLocalVideoView(
+            Container(color: Colors.grey)) ??
+        Container(color: Colors.grey);
   }
 
   Widget audioCallInWidget() {
@@ -215,21 +219,17 @@ class _SingleCallPageState extends State<SingleCallPage> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         content,
-        const Divider(height: 10),
+        const Divider(height: 10, color: Colors.transparent),
         nicknameWidget(),
-        const Divider(height: 10),
+        const Divider(height: 10, color: Colors.transparent),
         timeWidget('Audio Call'),
       ],
     );
 
-    Widget bottom = Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      mainAxisSize: MainAxisSize.max,
-      children: [
-        answerButton(),
-        hangupButton(),
-      ],
-    );
+    Widget bottom = bottomWidget([
+      answerButton(),
+      hangupButton(),
+    ]);
 
     content = Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -246,20 +246,54 @@ class _SingleCallPageState extends State<SingleCallPage> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         content,
-        const Divider(height: 10),
+        const Divider(height: 10, color: Colors.transparent),
         nicknameWidget(),
-        const Divider(height: 10),
+        const Divider(height: 10, color: Colors.transparent),
         timeWidget(holding ? 'Calling...' : timerToStr(time)),
       ],
     );
 
-    Widget bottom = Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      mainAxisSize: MainAxisSize.max,
+    Widget bottom = bottomWidget([
+      speakerButton(),
+      muteButton(),
+      hangupButton(),
+    ]);
+
+    content = Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [content, bottom],
+    );
+
+    return content;
+  }
+
+  Widget videoCallInWidget() {
+    Widget content = avatarWidget();
+
+    content = Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        speakerButton(),
-        muteButton(),
-        hangupButton(),
+        content,
+        const Divider(height: 10, color: Colors.transparent),
+        nicknameWidget(),
+        const Divider(height: 10, color: Colors.transparent),
+        timeWidget(holding ? 'Calling...' : timerToStr(time)),
+      ],
+    );
+
+    Widget top = topWidget([switchCameraButton(), const SizedBox(width: 17.5)]);
+
+    Widget bottom = bottomWidget([
+      speakerButton(),
+      muteButton(),
+      hangupButton(),
+    ]);
+
+    content = Column(
+      children: [
+        top,
+        const Divider(height: 30, color: Colors.transparent),
+        content
       ],
     );
 
@@ -275,13 +309,14 @@ class _SingleCallPageState extends State<SingleCallPage> {
     return SizedBox(
       width: 100,
       height: 100,
-      child: widget.avatar ??
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(100),
-              color: Colors.red,
-            ),
-          ),
+      child: Container(
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(100),
+          color: Colors.red,
+        ),
+        child: widget.avatar ?? Image.asset('images/avatar.png'),
+      ),
     );
   }
 
@@ -294,6 +329,36 @@ class _SingleCallPageState extends State<SingleCallPage> {
             fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
+    );
+  }
+
+  Widget topWidget(List<Widget> widgets) {
+    Widget topWidget = Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: widgets,
+    );
+    return topWidget;
+  }
+
+  Widget bottomWidget(List<Widget> widgets) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      mainAxisSize: MainAxisSize.max,
+      children: widgets,
+    );
+  }
+
+  Widget switchCameraButton() {
+    return InkWell(
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: const Color.fromRGBO(255, 255, 255, 0.2),
+        ),
+        child: Image.asset('images/switch_camera.png'),
+      ),
     );
   }
 
