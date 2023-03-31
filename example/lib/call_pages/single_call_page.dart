@@ -53,14 +53,15 @@ class _SingleCallPageState extends State<SingleCallPage> {
   bool speakerOn = false;
   bool mute = false;
   bool cameraOn = true;
-  bool hasJoined = false;
+  bool hiddenWidgets = false;
   int time = 0;
   Timer? timer;
   String? callId;
 
-  Widget? floatWidget;
+  Widget? removeVideoWidget;
 
   bool hasInit = false;
+  bool backgroundVideo = false;
 
   late SingleCallType currentType;
 
@@ -92,24 +93,28 @@ class _SingleCallPageState extends State<SingleCallPage> {
       }
     }
     AgoraChatCallManager.initRTC().then((value) {
-      switch (currentType) {
-        case SingleCallType.audioCallOutHolding:
-        case SingleCallType.videoCallOutHolding:
-          call();
-          break;
-        case SingleCallType.audioCallInHolding:
-          break;
-        case SingleCallType.videoCallInHolding:
-          break;
-        case SingleCallType.audioCallCalling:
-          break;
-        case SingleCallType.videoCallCalling:
-          break;
-      }
       setState(() {
         hasInit = true;
       });
+      afterRTCInitAction();
     });
+  }
+
+  void afterRTCInitAction() {
+    switch (currentType) {
+      case SingleCallType.audioCallOutHolding:
+      case SingleCallType.videoCallOutHolding:
+        call();
+        break;
+      case SingleCallType.audioCallInHolding:
+        break;
+      case SingleCallType.videoCallInHolding:
+        break;
+      case SingleCallType.audioCallCalling:
+        break;
+      case SingleCallType.videoCallCalling:
+        break;
+    }
   }
 
   void call() async {
@@ -125,16 +130,10 @@ class _SingleCallPageState extends State<SingleCallPage> {
     AgoraChatCallManager.addEventListener(
       "key",
       AgoraChatCallKitEventHandler(
-        onJoinedChannel: (channel) {
-          hasJoined = true;
-        },
-        onUserJoined: onUserJoined,
+        onJoinedChannel: (channel) {},
         onUserLeaved: (userId, agoraUid) {},
-        onCallEnd: (callId, reason) {
-          Navigator.of(context).pop();
-        },
-        onEngineInit: () {},
-        onEngineRelease: () {},
+        onCallEnd: (callId, reason) => Navigator.of(context).pop(),
+        onFirstRemoteVideoDecoded: remoteUserOpenVideo,
       ),
     );
   }
@@ -143,18 +142,17 @@ class _SingleCallPageState extends State<SingleCallPage> {
     AgoraChatCallManager.removeEventListener("key");
   }
 
-  void onUserJoined(String userId, int agoraUid) {
+  void remoteUserOpenVideo(String userId, int agoraUid, int width, int height) {
     if (userId == widget.userId) {
-      debugPrint("onUserJoined");
-      floatWidget = AgoraChatCallManager.getRemoteVideoView(agoraUid);
+      removeVideoWidget = AgoraChatCallManager.getRemoteVideoView(agoraUid);
       setState(() {
         holding = false;
       });
-      startTimer();
     }
   }
 
   void startTimer() {
+    timer?.cancel();
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
@@ -197,18 +195,10 @@ class _SingleCallPageState extends State<SingleCallPage> {
         }
         break;
       case SingleCallType.videoCallOutHolding:
-        {
-          content = videoCallOutWidget();
-        }
-        break;
       case SingleCallType.videoCallInHolding:
-        {
-          content = videoCallInWidget();
-        }
-        break;
       case SingleCallType.videoCallCalling:
         {
-          content = videoCallOutWidget();
+          content = videoCallWidget();
         }
         break;
     }
@@ -217,6 +207,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
       Positioned.fill(
         child: widget.background ?? backgroundWidget(),
       ),
+      Positioned.fill(child: backgroundWidget()),
       Positioned.fill(
         top: 55,
         bottom: 60,
@@ -231,17 +222,52 @@ class _SingleCallPageState extends State<SingleCallPage> {
   }
 
   Widget backgroundWidget() {
-    if (widget.type == AgoraChatCallType.video_1v1) {
-      Widget content = widget.background ?? Container(color: Colors.grey);
-      if (!hasInit) {}
-      return cameraOn
-          ? (hasInit
-                  ? AgoraChatCallManager.getLocalVideoView(content)
-                  : content) ??
-              content
-          : content;
+    if (!hasInit) return const Offstage();
+    Widget content;
+    if (backgroundVideo) {
+      content = removeWidget();
+    } else {
+      content = localWidget();
     }
-    return widget.background ?? Container(color: Colors.grey);
+
+    content = InkWell(
+      child: content,
+    );
+
+    return content;
+  }
+
+  Widget floatWidget() {
+    if (!hasInit) return const Offstage();
+    Widget content;
+    if (!backgroundVideo) {
+      content = removeWidget();
+    } else {
+      content = localWidget();
+    }
+
+    content = SizedBox(
+      width: 90,
+      height: 160,
+      child: content,
+    );
+
+    content = InkWell(
+      onTap: () {
+        setState(() => backgroundVideo = !backgroundVideo);
+      },
+      child: content,
+    );
+
+    return content;
+  }
+
+  Widget removeWidget() {
+    return removeVideoWidget ?? Container();
+  }
+
+  Widget localWidget() {
+    return AgoraChatCallManager.getLocalVideoView() ?? const Offstage();
   }
 
   Widget audioCallInWidget() {
@@ -251,9 +277,9 @@ class _SingleCallPageState extends State<SingleCallPage> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         content,
-        const Divider(height: 10, color: Colors.transparent),
+        const SizedBox(height: 10),
         nicknameWidget(),
-        const Divider(height: 10, color: Colors.transparent),
+        const SizedBox(height: 10),
         timeWidget('Audio Call'),
       ],
     );
@@ -278,9 +304,9 @@ class _SingleCallPageState extends State<SingleCallPage> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         content,
-        const Divider(height: 10, color: Colors.transparent),
+        const SizedBox(height: 10),
         nicknameWidget(),
-        const Divider(height: 10, color: Colors.transparent),
+        const SizedBox(height: 10),
         timeWidget(holding ? 'Calling...' : timerToStr(time)),
       ],
     );
@@ -299,71 +325,48 @@ class _SingleCallPageState extends State<SingleCallPage> {
     return content;
   }
 
-  Widget videoCallOutWidget() {
-    Widget content = avatarWidget();
+  Widget videoCallWidget() {
+    Widget content = switchCameraButton();
+    if (removeVideoWidget == null) {
+      content = Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [content, const SizedBox(width: 17.5)]),
+          avatarWidget(),
+          const SizedBox(height: 10),
+          nicknameWidget(),
+          const SizedBox(height: 10),
+          timeWidget(holding ? 'Calling...' : timerToStr(time)),
+        ],
+      );
+    } else {
+      content = Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [content, const SizedBox(width: 17.5)]),
+          const SizedBox(height: 10),
+          Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [floatWidget(), const SizedBox(width: 17.5)]),
+        ],
+      );
+    }
 
     content = Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        content,
-        const Divider(height: 10, color: Colors.transparent),
-        nicknameWidget(),
-        const Divider(height: 10, color: Colors.transparent),
-        timeWidget(holding ? 'Calling...' : timerToStr(time)),
-      ],
-    );
-    Widget top = topWidget([switchCameraButton(), const SizedBox(width: 17.5)]);
-    Widget bottom = bottomWidget([
-      cameraButton(),
-      muteButton(),
-      hangupButton(),
-    ]);
-
-    content = Column(
-      children: [
-        top,
-        const Divider(height: 30, color: Colors.transparent),
-        content
-      ],
+      children: [content, const SizedBox(height: 30)],
     );
 
-    content = Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [content, bottom],
-    );
-
-    return content;
-  }
-
-  Widget videoCallInWidget() {
-    Widget content = avatarWidget();
-
-    content = Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        content,
-        const Divider(height: 10, color: Colors.transparent),
-        nicknameWidget(),
-        const Divider(height: 10, color: Colors.transparent),
-        timeWidget(holding ? 'Calling...' : timerToStr(time)),
-      ],
-    );
-
-    Widget top = topWidget([switchCameraButton(), const SizedBox(width: 17.5)]);
-
-    Widget bottom = bottomWidget([
-      cameraButton(),
-      hangupButton(),
-      answerButton(),
-    ]);
-
-    content = Column(
-      children: [
-        top,
-        const Divider(height: 30, color: Colors.transparent),
-        content
-      ],
-    );
+    Widget bottom;
+    if (currentType == SingleCallType.videoCallCalling ||
+        currentType == SingleCallType.videoCallOutHolding) {
+      bottom = bottomWidget([cameraButton(), muteButton(), hangupButton()]);
+    } else {
+      bottom = bottomWidget([cameraButton(), hangupButton(), answerButton()]);
+    }
 
     content = Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -400,12 +403,16 @@ class _SingleCallPageState extends State<SingleCallPage> {
     );
   }
 
-  Widget topWidget(List<Widget> widgets) {
-    Widget topWidget = Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: widgets,
+  Widget topWidget(List<Widget> list) {
+    Widget content = Column(
+      children: list,
     );
-    return topWidget;
+
+    content = Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [content, const SizedBox(width: 17.5)],
+    );
+    return content;
   }
 
   Widget bottomWidget(List<Widget> widgets) {
@@ -503,9 +510,6 @@ class _SingleCallPageState extends State<SingleCallPage> {
     return CallButton(
       selected: speakerOn,
       callback: () async {
-        if (!hasJoined) {
-          return;
-        }
         speakerOn = !speakerOn;
         if (speakerOn) {
           await AgoraChatCallManager.speakerOn();

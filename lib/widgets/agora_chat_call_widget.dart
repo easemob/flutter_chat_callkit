@@ -23,7 +23,7 @@ class _AgoraChatCallWidgetState extends State<AgoraChatCallWidget> {
     return Stack(
       children: [
         Positioned.fill(child: widget.backgroundWidget ?? const Offstage()),
-        widget.child ?? const Offstage(),
+        Positioned.fill(child: widget.child ?? const Offstage())
       ],
     );
   }

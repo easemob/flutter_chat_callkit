@@ -1,5 +1,4 @@
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
-import 'package:flutter/material.dart';
 
 class AgoraChatCallKitEventHandler {
   AgoraChatCallKitEventHandler({
@@ -9,8 +8,7 @@ class AgoraChatCallKitEventHandler {
     this.onJoinedChannel,
     this.onUserLeaved,
     this.onUserJoined,
-    this.onEngineInit,
-    this.onEngineRelease,
+    this.onFirstRemoteVideoDecoded,
   });
   final void Function(AgoraChatCallError error)? onError;
 
@@ -18,14 +16,13 @@ class AgoraChatCallKitEventHandler {
 
   final void Function(String userId, int agoraUid)? onUserLeaved;
 
+  final void Function(String userId, int agoraUid, int width, int height)?
+      onFirstRemoteVideoDecoded;
+
   final void Function(String userId, int agoraUid)? onUserJoined;
 
   final void Function(String channel)? onJoinedChannel;
 
   final void Function(String userId, String callId, AgoraChatCallType callType,
       Map<String, String>? ext)? onReceiveCall;
-
-  final VoidCallback? onEngineInit;
-
-  final VoidCallback? onEngineRelease;
 }

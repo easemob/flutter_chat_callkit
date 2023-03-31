@@ -1,5 +1,4 @@
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
-import 'package:flutter/widgets.dart';
 import 'inherited/agora_chat_call_kit_manager_impl.dart';
 
 class AgoraChatCallManager {
@@ -44,17 +43,17 @@ class AgoraChatCallManager {
     return _impl.switchCamera();
   }
 
-  static AgoraChatCallWidget? getLocalVideoView([Widget? background]) {
-    return _impl.getLocalVideoView(background);
+  static AgoraVideoView? getLocalVideoView() {
+    return _impl.getLocalVideoView();
   }
 
-  static AgoraChatCallWidget? getRemoteVideoView(int agoraUid) {
+  static AgoraVideoView? getRemoteVideoView(int agoraUid) {
     return _impl.getRemoteVideoView(agoraUid);
   }
 
-  static List<AgoraChatCallWidget> getRemoteVideoViews() {
-    return _impl.getRemoteVideoViews();
-  }
+  // static List<AgoraVideoView> getRemoteVideoViews() {
+  //   return _impl.getRemoteVideoViews();
+  // }
 
   static Future<void> mute() {
     return _impl.mute();

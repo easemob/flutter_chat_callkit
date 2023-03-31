@@ -37,12 +37,6 @@ class AgoraChatCallKitManagerImpl {
 
     _rtc = AgoraEngineManager(
       RTCEventHandler(
-        onEngineInit: () {
-          handlerMap.forEach((key, value) => value.onEngineInit?.call());
-        },
-        onEngineRelease: () {
-          handlerMap.forEach((key, value) => value.onEngineRelease?.call());
-        },
         onJoinChannelSuccess: () {
           onJoinChannelSuccess();
         },
@@ -293,7 +287,15 @@ extension RTCEvent on AgoraChatCallKitManagerImpl {
 
   void onUserMuteVideo(int remoteUid, bool muted) {}
   void onUserMuteAudio(int remoteUid, bool muted) {}
-  void onFirstRemoteVideoDecoded(int remoteUid, int width, int height) {}
+  void onFirstRemoteVideoDecoded(int remoteUid, int width, int height) {
+    String? userId = _chat.model.curCall!.allUserAccounts[remoteUid];
+    if (_chat.model.curCall != null && userId != null) {
+      handlerMap.forEach((key, value) {
+        value.onFirstRemoteVideoDecoded?.call(userId, remoteUid, width, height);
+      });
+    }
+  }
+
   void onRemoteVideoStateChanged(
       int remoteUid, RemoteVideoState state, RemoteVideoStateReason reason) {}
   void onActiveSpeaker(int uid) {}
@@ -325,32 +327,20 @@ extension RTCAction on AgoraChatCallKitManagerImpl {
   Future<void> speakerOn() => _rtc.enableSpeaker();
   Future<void> speakerOff() => _rtc.disableSpeaker();
 
-  AgoraChatCallWidget? getLocalVideoView([Widget? background]) {
-    return AgoraChatCallWidget(
-      agoraUid: 0,
-      backgroundWidget: background,
-      child: _rtc.localView(),
-    );
+  AgoraVideoView? getLocalVideoView() {
+    return _rtc.localView();
   }
 
-  AgoraChatCallWidget? getRemoteVideoView(int agoraUid) {
+  AgoraVideoView? getRemoteVideoView(int agoraUid) {
     if (_chat.model.curCall != null) {
       String channel = _chat.model.curCall!.channel;
-      Widget? widget = _rtc.remoteView(agoraUid, channel);
-      if (widget == null) {
-        return null;
-      }
-      return AgoraChatCallWidget(
-        channel: channel,
-        agoraUid: agoraUid,
-        child: widget,
-      );
+      return _rtc.remoteView(agoraUid, channel);
     }
     return null;
   }
 
-  List<AgoraChatCallWidget> getRemoteVideoViews() {
-    List<AgoraChatCallWidget> list = [];
+  List<AgoraVideoView> getRemoteVideoViews() {
+    List<AgoraVideoView> list = [];
     return list;
   }
 }

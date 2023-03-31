@@ -29,8 +29,6 @@ class RTCEventHandler {
     this.onFirstRemoteVideoDecoded,
     this.onRemoteVideoStateChanged,
     this.onActiveSpeaker,
-    this.onEngineRelease,
-    this.onEngineInit,
   });
 
   final void Function(
@@ -50,8 +48,6 @@ class RTCEventHandler {
           int remoteUid, RemoteVideoState state, RemoteVideoStateReason reason)?
       onRemoteVideoStateChanged;
   final void Function(int uid)? onActiveSpeaker;
-  final VoidCallback? onEngineRelease;
-  final VoidCallback? onEngineInit;
 }
 
 class AgoraEngineManager {
@@ -60,6 +56,7 @@ class AgoraEngineManager {
   ) {
     _handler = RtcEngineEventHandler(
       onError: handler.onError,
+      onRemoteVideoStats: (connection, stats) {},
       onJoinChannelSuccess: (connection, elapsed) {
         handler.onJoinChannelSuccess?.call();
       },
@@ -267,7 +264,7 @@ extension EngineActions on AgoraEngineManager {
     await _engine.enableLocalVideo(false);
   }
 
-  Widget? remoteView(int agoraUid, String channel) {
+  AgoraVideoView? remoteView(int agoraUid, String channel) {
     if (!_engineHasInit) return null;
     return AgoraVideoView(
       controller: VideoViewController.remote(
@@ -278,7 +275,7 @@ extension EngineActions on AgoraEngineManager {
     );
   }
 
-  Widget? localView() {
+  AgoraVideoView? localView() {
     if (!_engineHasInit) return null;
 
     return AgoraVideoView(
