@@ -67,11 +67,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
   @override
   void initState() {
     super.initState();
-    AgoraChatCallManager.initRTC().then((value) {
-      setState(() {
-        hasInit = true;
-      });
-    });
+
     addListener();
 
     if (widget.callId != null) {
@@ -95,21 +91,25 @@ class _SingleCallPageState extends State<SingleCallPage> {
         currentType = SingleCallType.videoCallOutHolding;
       }
     }
-
-    switch (currentType) {
-      case SingleCallType.audioCallOutHolding:
-      case SingleCallType.videoCallOutHolding:
-        call();
-        break;
-      case SingleCallType.audioCallInHolding:
-        break;
-      case SingleCallType.videoCallInHolding:
-        break;
-      case SingleCallType.audioCallCalling:
-        break;
-      case SingleCallType.videoCallCalling:
-        break;
-    }
+    AgoraChatCallManager.initRTC().then((value) {
+      switch (currentType) {
+        case SingleCallType.audioCallOutHolding:
+        case SingleCallType.videoCallOutHolding:
+          call();
+          break;
+        case SingleCallType.audioCallInHolding:
+          break;
+        case SingleCallType.videoCallInHolding:
+          break;
+        case SingleCallType.audioCallCalling:
+          break;
+        case SingleCallType.videoCallCalling:
+          break;
+      }
+      setState(() {
+        hasInit = true;
+      });
+    });
   }
 
   void call() async {
@@ -235,7 +235,9 @@ class _SingleCallPageState extends State<SingleCallPage> {
       Widget content = widget.background ?? Container(color: Colors.grey);
       if (!hasInit) {}
       return cameraOn
-          ? (hasInit ? AgoraChatCallManager.getLocalVideoView() : content) ??
+          ? (hasInit
+                  ? AgoraChatCallManager.getLocalVideoView(content)
+                  : content) ??
               content
           : content;
     }

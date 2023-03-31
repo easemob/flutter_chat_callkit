@@ -325,10 +325,10 @@ extension RTCAction on AgoraChatCallKitManagerImpl {
   Future<void> speakerOn() => _rtc.enableSpeaker();
   Future<void> speakerOff() => _rtc.disableSpeaker();
 
-  AgoraChatCallWidget? getLocalVideoView([Widget? maskWidget]) {
+  AgoraChatCallWidget? getLocalVideoView([Widget? background]) {
     return AgoraChatCallWidget(
       agoraUid: 0,
-      backgroundWidget: maskWidget,
+      backgroundWidget: background,
       child: _rtc.localView(),
     );
   }
