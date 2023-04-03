@@ -140,7 +140,9 @@ class AgoraEngineManager {
       try {
         await _engine.release();
         // ignore: empty_catches
-      } catch (e) {}
+      } catch (e) {
+        debugPrint("release failed");
+      }
     }
   }
 
@@ -154,12 +156,20 @@ class AgoraEngineManager {
     String channel,
     int uid,
   ) async {
-    debugPrint("will join channel $channel");
+    if (type == AgoraChatCallType.audio_1v1) {
+      await enableAudio();
+    } else {
+      await enableVideo();
+      await startPreview();
+    }
+
+    // await _engine.joinChannel(
+    //     token: token,
+    //     channelId: channel,
+    //     uid: uid,
+    //     options: const ChannelMediaOptions());
+
     try {
-      if (type == AgoraChatCallType.audio_1v1) {
-        await enableAudio();
-      } else if (type == AgoraChatCallType.multi) {
-      } else if (type == AgoraChatCallType.video_1v1) {}
       await _engine.joinChannel(
           token: token,
           channelId: channel,

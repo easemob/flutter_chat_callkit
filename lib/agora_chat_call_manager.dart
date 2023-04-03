@@ -82,6 +82,10 @@ class AgoraChatCallManager {
     _impl.rtcTokenHandler = handler;
   }
 
+  static void setUserMapperHandler(UserMapperHandler handler) {
+    _impl.userMapperHandler = handler;
+  }
+
   static void addEventListener(
     String key,
     AgoraChatCallKitEventHandler handler,

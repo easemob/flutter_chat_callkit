@@ -24,6 +24,10 @@ class _HomePageState extends State<HomePage> {
       return requestAppServerToken(channel, agoraAppId, agoraUid);
     });
 
+    AgoraChatCallManager.setUserMapperHandler((channel, agoraUid) {
+      return requestAppServerUserMapper(channel, agoraUid);
+    });
+
     AgoraChatCallManager.addEventListener(
         "home",
         AgoraChatCallKitEventHandler(
@@ -97,7 +101,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void multiCall() async {
-    pushToSingleCallPage("du001", AgoraChatCallType.multi);
+    pushToSingleCallPage("du002", AgoraChatCallType.multi);
   }
 
   void onReceiveCall(

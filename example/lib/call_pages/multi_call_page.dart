@@ -1,5 +1,5 @@
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
-import 'package:example/call_pages/call_buttom.dart';
+import 'package:example/call_pages/call_button.dart';
 import 'package:example/call_pages/multi_call_item_view.dart';
 import 'package:example/call_pages/multi_call_view.dart';
 import 'package:flutter/material.dart';
@@ -51,7 +51,13 @@ class _MultiCallPageState extends State<MultiCallPage> {
           userId: element,
         ));
       }
-
+      String? current = ChatClient.getInstance.currentUserId;
+      list.insert(
+          0,
+          MultiCallItemView(
+            userId: current!,
+            videoView: AgoraChatCallManager.getLocalVideoView(),
+          ));
       callId = await AgoraChatCallManager.startInviteUsers(widget.userList);
     }
     setState(() {});
@@ -61,18 +67,41 @@ class _MultiCallPageState extends State<MultiCallPage> {
     AgoraChatCallManager.addEventListener(
       "multi",
       AgoraChatCallKitEventHandler(
-        onUserJoined: (userId, agoraUid) {
+        onUserMuteAudio: (agoraUid, muted) {
+          int index =
+              list.indexWhere((element) => element.agoraUid == agoraUid);
+          if (index != -1) {
+            MultiCallItemView view = list[index];
+            view = view.copyWith(muteAudio: muted);
+            list[index] = view;
+            setState(() {});
+          }
+        },
+        onUserMuteVideo: (agoraUid, muted) {
+          int index =
+              list.indexWhere((element) => element.agoraUid == agoraUid);
+          if (index != -1) {
+            MultiCallItemView view = list[index];
+            view = view.copyWith(muteVideo: muted);
+            list[index] = view;
+            setState(() {});
+          }
+        },
+        onUserJoined: (agoraUid, userId) {
           setState(() {
-            list.add(
-              MultiCallItemView(
-                userId: userId,
-              ),
-            );
+            list.removeWhere((element) =>
+                element.userId == userId || element.agoraUid == agoraUid);
+            list.add(MultiCallItemView(
+              agoraUid: agoraUid,
+              userId: userId,
+              videoView: AgoraChatCallManager.getRemoteVideoView(agoraUid),
+            ));
           });
         },
-        onUserLeaved: (userId, agoraUid) {
+        onUserLeaved: (agoraUid, userId) {
           setState(() {
-            list.removeWhere((element) => element.userId == userId);
+            list.removeWhere((element) =>
+                element.userId == userId || element.agoraUid == agoraUid);
           });
         },
         onCallEnd: (callId, reason) => Navigator.of(context).pop(),

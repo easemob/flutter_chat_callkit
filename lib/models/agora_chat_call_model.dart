@@ -8,7 +8,7 @@ typedef AgoraChatCallStateChange = void Function(
 class AgoraChatCallModel {
   AgoraChatCall? curCall;
   String curDevId;
-  String? curUserAccount;
+
   String? agoraRTCToken;
   bool hasJoined;
   int? agoraUid;
@@ -19,7 +19,6 @@ class AgoraChatCallModel {
   AgoraChatCallModel({
     this.curCall,
     Map<String, AgoraChatCall>? recvCalls,
-    this.curUserAccount,
     this.agoraRTCToken,
     AgoraChatCallState state = AgoraChatCallState.idle,
     this.hasJoined = false,
@@ -31,6 +30,7 @@ class AgoraChatCallModel {
         recvCalls = recvCalls ?? {};
 
   set state(AgoraChatCallState state) {
+    if (_state == state) return;
     stateChanged?.call(state, _state);
     _state = state;
   }

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
-import 'package:example/call_pages/call_buttom.dart';
+import 'package:example/call_pages/call_button.dart';
 import 'package:example/tools/format_time_tool.dart';
 
 import 'package:flutter/material.dart';
@@ -183,7 +183,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
       "key",
       AgoraChatCallKitEventHandler(
         onJoinedChannel: (channel) {},
-        onUserLeaved: (userId, agoraUid) {},
+        onUserLeaved: (agoraUid, userId) {},
         onCallEnd: (callId, reason) => Navigator.of(context).pop(),
         onFirstRemoteVideoDecoded: remoteUserOpenVideo,
       ),
@@ -194,7 +194,8 @@ class _SingleCallPageState extends State<SingleCallPage> {
     AgoraChatCallManager.removeEventListener("key");
   }
 
-  void remoteUserOpenVideo(String userId, int agoraUid, int width, int height) {
+  void remoteUserOpenVideo(
+      int agoraUid, String? userId, int width, int height) {
     if (userId == widget.userId) {
       removeVideoWidget = AgoraChatCallManager.getRemoteVideoView(agoraUid);
       setState(() {
@@ -587,4 +588,3 @@ class _SingleCallPageState extends State<SingleCallPage> {
     );
   }
 }
-

@@ -34,7 +34,7 @@ Future<Map<String, int>> requestAppServerToken(
 
   var uri = Uri.https(
     Config.appServerHost,
-    Config.appServerURL,
+    Config.appServerTokenURL,
     map,
   );
   var request = await httpClient.getUrl(uri);
@@ -53,5 +53,56 @@ Future<Map<String, int>> requestAppServerToken(
   }
   httpClient.close();
   debugPrint("get token: ${ret.toString()}");
+  return ret;
+}
+
+Future<AgoraChatCallUserMapper?> requestAppServerUserMapper(
+  String channel,
+  int agoraUid,
+) async {
+  String? accessToken;
+  String? userId;
+  try {
+    accessToken = await ChatClient.getInstance.getAccessToken();
+    userId = await ChatClient.getInstance.getCurrentUserId();
+  } catch (e) {
+    debugPrint(e.toString());
+    return null;
+  }
+  var httpClient = HttpClient();
+
+  Map<String, dynamic> map = {
+    "userAccount": userId,
+    "channelName": channel,
+    "appkey": Config.appkey,
+  };
+
+  var uri = Uri.https(
+    Config.appServerHost,
+    Config.appServerUserMapperURL,
+    map,
+  );
+  var request = await httpClient.getUrl(uri);
+  request.headers.set("Authorization", "Bearer $accessToken");
+  HttpClientResponse response = await request.close();
+  AgoraChatCallUserMapper? ret;
+  if (response.statusCode == HttpStatus.ok) {
+    var content = await response.transform(const Utf8Decoder()).join();
+
+    Map<String, dynamic>? map = convert.jsonDecode(content);
+    if (map != null) {
+      if (map["code"] == "RES_0K") {
+        String channel = map["channelName"];
+        Map result = map["result"];
+        Map<int, String> mapper = {};
+        result.forEach((key, value) {
+          mapper[int.parse(key)] = value;
+        });
+        ret = AgoraChatCallUserMapper(channel, mapper);
+      }
+    }
+  }
+  httpClient.close();
+
   return ret;
 }

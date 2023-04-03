@@ -13,6 +13,7 @@ class AgoraChatCallKitManagerImpl {
 
   Map<String, AgoraChatCallKitEventHandler> handlerMap = {};
   RtcTokenHandler? rtcTokenHandler;
+  UserMapperHandler? userMapperHandler;
 
   late final AgoraChatManager _chat;
   late final AgoraEngineManager _rtc;
@@ -137,6 +138,7 @@ class AgoraChatCallKitManagerImpl {
   }
 
   Future<void> fetchToken() async {
+    if (_chat.model.hasJoined) return;
     if (_chat.model.curCall == null ||
         _rtc.agoraAppId == null ||
         rtcTokenHandler == null) return;
@@ -149,6 +151,10 @@ class AgoraChatCallKitManagerImpl {
 
     if (_chat.model.curCall == null) return;
 
+    String? username = ChatClient.getInstance.currentUserId;
+
+    if (username == null) return;
+
     await _rtc.joinChannel(
       _chat.model.curCall!.callType,
       agoraToken.keys.first,
@@ -159,6 +165,27 @@ class AgoraChatCallKitManagerImpl {
 }
 
 extension ChatEvent on AgoraChatCallKitManagerImpl {
+  Future<AgoraChatCallUserMapper?> updateUserMapper(int agoraUid) async {
+    String? userId = ChatClient.getInstance.currentUserId;
+
+    if (userId == null ||
+        ChatClient.getInstance.options?.appKey == null ||
+        _chat.model.curCall?.channel == null) return null;
+
+    AgoraChatCallUserMapper? mapper =
+        await userMapperHandler?.call(_chat.model.curCall!.channel, agoraUid);
+
+    if (_chat.model.curCall != null &&
+        mapper != null &&
+        mapper.channel == _chat.model.curCall!.channel) {
+      if (_chat.model.curCall!.channel != mapper.channel) return null;
+
+      _chat.model.curCall!.allUserAccounts.addAll(mapper.infoMapper);
+    }
+
+    return mapper;
+  }
+
   void stateChanged(
       AgoraChatCallState newState, AgoraChatCallState preState) async {
     switch (newState) {
@@ -171,7 +198,7 @@ extension ChatEvent on AgoraChatCallKitManagerImpl {
       case AgoraChatCallState.outgoing:
         {
           if (_chat.model.curCall == null) return;
-          if (_chat.model.curCall?.callType == AgoraChatCallType.video_1v1) {
+          if (_chat.model.curCall?.callType != AgoraChatCallType.audio_1v1) {
             await _rtc.enableVideo();
             await _rtc.startPreview();
           }
@@ -183,7 +210,7 @@ extension ChatEvent on AgoraChatCallKitManagerImpl {
           if (_chat.model.curCall == null) return;
           await _rtc.initEngine();
           if (_chat.model.curCall != null) {
-            if (_chat.model.curCall!.callType == AgoraChatCallType.video_1v1) {
+            if (_chat.model.curCall!.callType != AgoraChatCallType.audio_1v1) {
               await _rtc.enableVideo();
               await _rtc.startPreview();
             }
@@ -203,8 +230,8 @@ extension ChatEvent on AgoraChatCallKitManagerImpl {
           if (_chat.model.curCall == null) return;
           if (_chat.model.curCall!.callType == AgoraChatCallType.multi &&
               _chat.model.curCall!.isCaller) {
-            await _rtc.enableVideo();
-            await _rtc.startPreview();
+            // await _rtc.enableVideo();
+            // await _rtc.startPreview();
             await fetchToken();
           }
         }
@@ -242,27 +269,25 @@ extension RTCEvent on AgoraChatCallKitManagerImpl {
     }
   }
 
-  void onLeaveChannel() {}
-  void onUserJoined(int remoteUid) {
+  void onLeaveChannel() {
+    _chat.model.curCall = null;
+  }
+
+  void onUserJoined(int remoteUid) async {
+    AgoraChatCallUserMapper? mapper = await updateUserMapper(remoteUid);
     if (_chat.model.curCall != null) {
       if (_chat.model.curCall?.callType == AgoraChatCallType.multi) {
-        String userId = _chat.model.curCall!.allUserAccounts[remoteUid] ?? "";
-        if (userId.isNotEmpty) {
-          _chat.callTimerDic.remove(userId)?.cancel();
-        }
-        // update ui
+        mapper?.infoMapper.forEach((key, value) {
+          _chat.callTimerDic.remove(value)?.cancel();
+        });
       } else {
         _chat.callTimerDic
             .remove(_chat.model.curCall!.remoteUserAccount)
             ?.cancel();
-        _chat.model.curCall!.allUserAccounts[remoteUid] =
-            _chat.model.curCall!.remoteUserAccount!;
       }
 
-      String userId = _chat.model.curCall!.allUserAccounts[remoteUid] ?? "";
-
       handlerMap.forEach((key, value) {
-        value.onUserJoined?.call(userId, remoteUid);
+        value.onUserJoined?.call(remoteUid, mapper?.infoMapper[remoteUid]);
       });
     }
   }
@@ -270,12 +295,9 @@ extension RTCEvent on AgoraChatCallKitManagerImpl {
   void onUserLeaved(int remoteUid) {
     if (_chat.model.curCall != null) {
       String? userId = _chat.model.curCall?.allUserAccounts.remove(remoteUid);
-
-      if (userId != null) {
-        handlerMap.forEach((key, value) {
-          value.onUserLeaved?.call(userId, remoteUid);
-        });
-      }
+      handlerMap.forEach((key, value) {
+        value.onUserLeaved?.call(remoteUid, userId);
+      });
       if (_chat.model.curCall!.callType != AgoraChatCallType.multi) {
         if (_chat.model.curCall != null) {
           handlerMap.forEach((key, value) {
@@ -290,13 +312,27 @@ extension RTCEvent on AgoraChatCallKitManagerImpl {
     }
   }
 
-  void onUserMuteVideo(int remoteUid, bool muted) {}
-  void onUserMuteAudio(int remoteUid, bool muted) {}
+  void onUserMuteVideo(int remoteUid, bool muted) {
+    if (_chat.model.curCall != null) {
+      handlerMap.forEach((key, value) {
+        value.onUserMuteVideo?.call(remoteUid, muted);
+      });
+    }
+  }
+
+  void onUserMuteAudio(int remoteUid, bool muted) {
+    if (_chat.model.curCall != null) {
+      handlerMap.forEach((key, value) {
+        value.onUserMuteAudio?.call(remoteUid, muted);
+      });
+    }
+  }
+
   void onFirstRemoteVideoDecoded(int remoteUid, int width, int height) {
     String? userId = _chat.model.curCall!.allUserAccounts[remoteUid];
-    if (_chat.model.curCall != null && userId != null) {
+    if (_chat.model.curCall != null) {
       handlerMap.forEach((key, value) {
-        value.onFirstRemoteVideoDecoded?.call(userId, remoteUid, width, height);
+        value.onFirstRemoteVideoDecoded?.call(remoteUid, userId, width, height);
       });
     }
   }

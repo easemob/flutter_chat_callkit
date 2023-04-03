@@ -4,23 +4,34 @@ import 'package:flutter/material.dart';
 
 class MultiCallItemView extends StatelessWidget {
   const MultiCallItemView({
-    required this.userId,
+    this.agoraUid,
+    this.userId,
     this.videoView,
-    this.isCalling = false,
-    this.enableAudio = true,
-    this.enableVideo = true,
+    this.muteAudio = false,
+    this.muteVideo = false,
     this.avatar,
     this.nickname,
     super.key,
   });
-  final String userId;
-  final bool isCalling;
-  final bool enableVideo;
-  final bool enableAudio;
-
+  final int? agoraUid;
+  final bool muteVideo;
+  final bool muteAudio;
+  final String? userId;
   final Widget? avatar;
   final String? nickname;
   final Widget? videoView;
+
+  MultiCallItemView copyWith({bool? muteAudio, bool? muteVideo}) {
+    return MultiCallItemView(
+      agoraUid: agoraUid,
+      userId: userId,
+      videoView: videoView,
+      muteAudio: muteAudio ?? this.muteAudio,
+      muteVideo: muteVideo ?? this.muteVideo,
+      avatar: avatar,
+      nickname: nickname,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,14 +45,14 @@ class MultiCallItemView extends StatelessWidget {
     List<Widget> list = [
       const SizedBox(width: 10),
       Text(
-        nickname ?? userId,
+        nickname ?? userId ?? agoraUid.toString(),
         style: const TextStyle(
             fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
       ),
       const Expanded(child: Offstage())
     ];
 
-    if (enableVideo == false) {
+    if (muteVideo == true) {
       list.add(SizedBox(
         width: 18,
         height: 24,
@@ -49,7 +60,7 @@ class MultiCallItemView extends StatelessWidget {
       ));
     }
     list.add(const SizedBox(width: 5));
-    if (enableAudio == false) {
+    if (muteAudio == true) {
       list.add(SizedBox(
         width: 18,
         height: 24,
@@ -104,7 +115,7 @@ class MultiCallItemView extends StatelessWidget {
             ],
           ),
         ),
-        Positioned(child: videoView ?? Container()),
+        Positioned(child: muteVideo ? Container() : videoView ?? Container()),
         Positioned(
           left: 0,
           right: 0,
