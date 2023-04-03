@@ -64,7 +64,6 @@ class AgoraEngineManager {
         handler.onLeaveChannel?.call();
       },
       onUserJoined: (connection, remoteUid, elapsed) {
-        debugPrint("userJoin!!!");
         handler.onUserJoined?.call(remoteUid);
       },
       onUserOffline: (connection, remoteUid, reason) {
@@ -167,6 +166,7 @@ class AgoraEngineManager {
           uid: uid,
           options: const ChannelMediaOptions());
     } catch (e) {
+      debugPrint("e: ${e.toString()}");
       handler.onError?.call(ErrorCodeType.errFailed,
           "General error with no classified reason. Try calling the method again");
     }

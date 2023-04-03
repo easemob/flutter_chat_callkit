@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
 import 'package:agora_chat_callkit/models/agora_chat_call.dart';
@@ -550,6 +551,75 @@ class AgoraChatManager {
     return model.curCall!.callId;
   }
 
+  Future<String> startInviteUsers(
+    List<String> userIds,
+    Map<String, String>? ext,
+  ) async {
+    if (userIds.isEmpty) {
+      throw AgoraChatCallError.process(
+          AgoraChatCallErrorProcessCode.invalidParam, 'Require remote userId');
+    }
+    if (busy) {
+      throw AgoraChatCallError.process(
+          AgoraChatCallErrorProcessCode.busy, 'Current is busy');
+    }
+
+    if (model.curCall != null) {
+      for (var element in userIds) {
+        if (model.curCall!.allUserAccounts.values.contains(element)) {
+          continue;
+        }
+        sendInviteMsgToCallee(
+          element,
+          model.curCall!.callType,
+          model.curCall!.callId,
+          model.curCall!.channel,
+          ext,
+        );
+        // 需要更新ui，用户加入
+        callTimerDic[element] = Timer.periodic(timeoutDuration, (timer) {
+          timer.cancel();
+          callTimerDic.remove(element);
+          if (model.curCall != null) {
+            sendCancelCallMsgToCallee(element, model.curCall!.callId);
+            // 需要回调用户离开
+          }
+        });
+      }
+    } else {
+      model.curCall = AgoraChatCall(
+        callId: AgoraChatCallKitTools.randomStr,
+        callType: AgoraChatCallType.multi,
+        isCaller: true,
+        channel: AgoraChatCallKitTools.randomStr,
+        ext: ext,
+      );
+
+      model.state = AgoraChatCallState.answering;
+      for (var element in userIds) {
+        sendInviteMsgToCallee(
+          element,
+          model.curCall!.callType,
+          model.curCall!.callId,
+          model.curCall!.channel,
+          ext,
+        );
+
+        // 需要更新ui，用户加入
+        callTimerDic[element] = Timer.periodic(timeoutDuration, (timer) {
+          timer.cancel();
+          callTimerDic.remove(element);
+          if (model.curCall != null) {
+            sendCancelCallMsgToCallee(element, model.curCall!.callId);
+            // 需要回调用户离开
+          }
+        });
+      }
+    }
+
+    return model.curCall!.callId;
+  }
+
   Future<void> hangup(String callId) async {
     if (model.curCall?.callId == callId) {
       clearAllTimer();
@@ -557,13 +627,13 @@ class AgoraChatManager {
         handler.onCallEndReason(callId, AgoraChatCallEndReason.hangup);
       } else if (model.state == AgoraChatCallState.outgoing) {
         sendCancelCallMsgToCallee(
-          model.curCall!.remoteUserAccount,
+          model.curCall!.remoteUserAccount!,
           model.curCall!.callId,
         );
         handler.onCallEndReason(callId, AgoraChatCallEndReason.cancel);
       } else if (model.state == AgoraChatCallState.alerting) {
         sendAnswerMsg(
-          model.curCall!.remoteUserAccount,
+          model.curCall!.remoteUserAccount!,
           model.curCall!.callId,
           kRefuseResult,
           model.curCall!.remoteCallDevId!,
@@ -580,7 +650,7 @@ class AgoraChatManager {
         return;
       }
       sendAnswerMsg(
-        model.curCall!.remoteUserAccount,
+        model.curCall!.remoteUserAccount!,
         callId,
         kAcceptResult,
         model.curCall!.remoteCallDevId!,

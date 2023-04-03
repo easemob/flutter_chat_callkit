@@ -94,12 +94,17 @@ class AgoraChatCallKitManagerImpl {
     String userId, {
     AgoraChatCallType type = AgoraChatCallType.audio_1v1,
     Map<String, String>? ext,
-  }) async {
+  }) {
     return _chat.startSingleCall(
       userId,
       type: type,
       ext: ext,
     );
+  }
+
+  Future<String> startInviteUsers(
+      List<String> userIds, Map<String, String>? ext) {
+    return _chat.startInviteUsers(userIds, ext);
   }
 
   Future<void> answerCall(String callId) {
@@ -179,12 +184,12 @@ extension ChatEvent on AgoraChatCallKitManagerImpl {
           await _rtc.initEngine();
           if (_chat.model.curCall != null) {
             if (_chat.model.curCall!.callType == AgoraChatCallType.video_1v1) {
-              // await _rtc.enableVideo();
+              await _rtc.enableVideo();
               await _rtc.startPreview();
             }
             handlerMap.forEach((key, value) {
               value.onReceiveCall?.call(
-                _chat.model.curCall!.remoteUserAccount,
+                _chat.model.curCall!.remoteUserAccount!,
                 _chat.model.curCall!.callId,
                 _chat.model.curCall!.callType,
                 _chat.model.curCall!.ext,
@@ -251,7 +256,7 @@ extension RTCEvent on AgoraChatCallKitManagerImpl {
             .remove(_chat.model.curCall!.remoteUserAccount)
             ?.cancel();
         _chat.model.curCall!.allUserAccounts[remoteUid] =
-            _chat.model.curCall!.remoteUserAccount;
+            _chat.model.curCall!.remoteUserAccount!;
       }
 
       String userId = _chat.model.curCall!.allUserAccounts[remoteUid] ?? "";

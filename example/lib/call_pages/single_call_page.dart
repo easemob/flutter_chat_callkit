@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
+import 'package:example/call_pages/call_buttom.dart';
 import 'package:example/tools/format_time_tool.dart';
 
 import 'package:flutter/material.dart';
@@ -21,6 +22,52 @@ enum SingleCallType {
 }
 
 class SingleCallPage extends StatefulWidget {
+/*
+  factory SingleCallPage.receive(
+    String userId,
+    String callId, [
+    String? nickname,
+    TextStyle? nicknameStyle,
+    TextStyle? timeStyle,
+    Widget? avatar,
+    Widget? background,
+    bool isVideo = false,
+  ]) {
+    return SingleCallPage(
+      userId,
+      callId: callId,
+      avatar: avatar,
+      nickname: nickname,
+      background: background,
+      nicknameTextStyle: nicknameStyle,
+      timeTextStyle: timeStyle,
+      type: isVideo ? AgoraChatCallType.video_1v1 : AgoraChatCallType.audio_1v1,
+      calling: false,
+    );
+  }
+
+  factory SingleCallPage.call(
+    String userId, [
+    String? nickname,
+    TextStyle? nicknameStyle,
+    TextStyle? timeStyle,
+    Widget? avatar,
+    Widget? background,
+    bool isVideo = false,
+  ]) {
+    return SingleCallPage(
+      userId,
+      avatar: avatar,
+      nickname: nickname,
+      background: background,
+      nicknameTextStyle: nicknameStyle,
+      timeTextStyle: timeStyle,
+      type: isVideo ? AgoraChatCallType.video_1v1 : AgoraChatCallType.audio_1v1,
+      calling: false,
+    );
+  }
+  */
+
   const SingleCallPage(
     this.userId, {
     this.callId,
@@ -61,7 +108,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
   Widget? removeVideoWidget;
 
   bool hasInit = false;
-  bool backgroundVideo = false;
+  bool backgroundVideo = true;
 
   late SingleCallType currentType;
 
@@ -107,14 +154,19 @@ class _SingleCallPageState extends State<SingleCallPage> {
         call();
         break;
       case SingleCallType.audioCallInHolding:
-        break;
       case SingleCallType.videoCallInHolding:
         break;
       case SingleCallType.audioCallCalling:
-        break;
       case SingleCallType.videoCallCalling:
+        answer();
         break;
     }
+  }
+
+  void answer() async {
+    await AgoraChatCallManager.answer(widget.callId!);
+    holding = false;
+    setState(() {});
   }
 
   void call() async {
@@ -205,8 +257,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
 
     List<Widget> list = [
       Positioned.fill(
-        child: widget.background ?? backgroundWidget(),
-      ),
+          child: widget.background ?? Container(color: Colors.grey)),
       Positioned.fill(child: backgroundWidget()),
       Positioned.fill(
         top: 55,
@@ -224,7 +275,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
   Widget backgroundWidget() {
     if (!hasInit) return const Offstage();
     Widget content;
-    if (backgroundVideo) {
+    if (backgroundVideo && removeVideoWidget != null) {
       content = removeWidget();
     } else {
       content = localWidget();
@@ -537,44 +588,3 @@ class _SingleCallPageState extends State<SingleCallPage> {
   }
 }
 
-class CallButton extends StatefulWidget {
-  const CallButton({
-    required this.callback,
-    required this.selected,
-    required this.selectImage,
-    this.unselectImage,
-    this.backgroundColor,
-    super.key,
-  });
-
-  final VoidCallback callback;
-  final bool selected;
-  final Widget selectImage;
-  final Widget? unselectImage;
-  final Color? backgroundColor;
-  @override
-  State<CallButton> createState() => _CallButtonState();
-}
-
-class _CallButtonState extends State<CallButton> {
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: widget.callback,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(50),
-          color: widget.backgroundColor ??
-              (widget.selected
-                  ? const Color.fromRGBO(255, 255, 255, 1)
-                  : const Color.fromRGBO(255, 255, 255, 0.2)),
-        ),
-        width: 64,
-        height: 64,
-        child: widget.selected
-            ? widget.selectImage
-            : widget.unselectImage ?? widget.selectImage,
-      ),
-    );
-  }
-}

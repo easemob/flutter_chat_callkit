@@ -13,6 +13,13 @@ class AgoraChatCallManager {
     return _impl.startSingleCall(userId, type: type, ext: ext);
   }
 
+  static Future<String> startInviteUsers(
+    List<String> userIds, {
+    Map<String, String>? ext,
+  }) {
+    return _impl.startInviteUsers(userIds, ext);
+  }
+
   static Future<void> initRTC() {
     return _impl.initRTC();
   }

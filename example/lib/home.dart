@@ -1,4 +1,5 @@
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
+import 'package:example/call_pages/multi_call_page.dart';
 import 'package:example/tools/token_tool.dart';
 
 import 'package:flutter/material.dart';
@@ -74,7 +75,11 @@ class _HomePageState extends State<HomePage> {
                   child: const Text("Video Call"),
                 ),
               ],
-            )
+            ),
+            ElevatedButton(
+              onPressed: multiCall,
+              child: const Text("multi call"),
+            ),
           ],
         ),
       ),
@@ -91,6 +96,10 @@ class _HomePageState extends State<HomePage> {
     pushToSingleCallPage(_controller.text, AgoraChatCallType.video_1v1);
   }
 
+  void multiCall() async {
+    pushToSingleCallPage("du001", AgoraChatCallType.multi);
+  }
+
   void onReceiveCall(
     String userId,
     String callId,
@@ -102,12 +111,19 @@ class _HomePageState extends State<HomePage> {
 
   void pushToSingleCallPage(String userId, AgoraChatCallType callType,
       [String? callId]) async {
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-      return SingleCallPage(
+    Widget page;
+    if (callType == AgoraChatCallType.multi) {
+      page = MultiCallPage.call([userId]);
+    } else {
+      page = SingleCallPage(
         userId,
         callId: callId,
         type: callType,
       );
+    }
+
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+      return page;
     }));
   }
 }

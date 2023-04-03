@@ -3,10 +3,10 @@ import 'package:agora_chat_callkit/agora_chat_callkit_define.dart';
 class AgoraChatCall {
   AgoraChatCall({
     required this.callId,
-    required this.remoteUserAccount,
     required this.callType,
     required this.isCaller,
     required this.channel,
+    this.remoteUserAccount,
     Map<int, String>? allUserAccounts,
     this.remoteCallDevId,
     this.agoraUid,
@@ -14,7 +14,7 @@ class AgoraChatCall {
   }) : allUserAccounts = allUserAccounts ?? {};
 
   final String callId;
-  final String remoteUserAccount;
+  final String? remoteUserAccount;
   final AgoraChatCallType callType;
   final String channel;
   final bool isCaller;
