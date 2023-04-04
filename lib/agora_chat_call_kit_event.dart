@@ -11,6 +11,8 @@ class AgoraChatCallKitEventHandler {
     this.onFirstRemoteVideoDecoded,
     this.onUserMuteAudio,
     this.onUserMuteVideo,
+    this.onActiveSpeaker,
+    this.onUserRemoved,
   });
   final void Function(AgoraChatCallError error)? onError;
 
@@ -21,6 +23,8 @@ class AgoraChatCallKitEventHandler {
   final void Function(int agoraUid, String? userId, int width, int height)?
       onFirstRemoteVideoDecoded;
 
+  final void Function(int agoraUid, String? userId)? onActiveSpeaker;
+
   final void Function(int agoraUid, String? userId)? onUserJoined;
 
   final void Function(String channel)? onJoinedChannel;
@@ -30,4 +34,5 @@ class AgoraChatCallKitEventHandler {
 
   final void Function(int agoraUid, bool muted)? onUserMuteAudio;
   final void Function(int agoraUid, bool muted)? onUserMuteVideo;
+  final void Function(String callId, String userId)? onUserRemoved;
 }

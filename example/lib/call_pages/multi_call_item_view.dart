@@ -9,6 +9,7 @@ class MultiCallItemView extends StatelessWidget {
     this.videoView,
     this.muteAudio = false,
     this.muteVideo = false,
+    this.isWaiting = true,
     this.avatar,
     this.nickname,
     super.key,
@@ -20,14 +21,17 @@ class MultiCallItemView extends StatelessWidget {
   final Widget? avatar;
   final String? nickname;
   final Widget? videoView;
+  final bool isWaiting;
 
-  MultiCallItemView copyWith({bool? muteAudio, bool? muteVideo}) {
+  MultiCallItemView copyWith(
+      {bool? muteAudio, bool? muteVideo, bool? isWaiting}) {
     return MultiCallItemView(
       agoraUid: agoraUid,
       userId: userId,
       videoView: videoView,
       muteAudio: muteAudio ?? this.muteAudio,
       muteVideo: muteVideo ?? this.muteVideo,
+      isWaiting: isWaiting ?? this.isWaiting,
       avatar: avatar,
       nickname: nickname,
     );
@@ -73,60 +77,70 @@ class MultiCallItemView extends StatelessWidget {
       mainAxisSize: MainAxisSize.max,
       children: list,
     );
-    content = Stack(
-      children: [
-        Positioned.fill(child: background),
-        Positioned.fill(
-          child: ClipRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(color: const Color.fromRGBO(0, 0, 0, 0.4)),
-            ),
+
+    List<Widget> positionList = [
+      Positioned.fill(child: background),
+      Positioned.fill(
+        child: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(color: const Color.fromRGBO(0, 0, 0, 0.4)),
           ),
         ),
-        Positioned(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                flex: 1,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      clipBehavior: Clip.hardEdge,
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(50),
-                        ),
+      ),
+      Positioned(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              flex: 1,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    clipBehavior: Clip.hardEdge,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(50),
                       ),
-                      width: 100,
-                      height: 100,
-                      child: content,
                     ),
-                  ],
-                ),
+                    width: 100,
+                    height: 100,
+                    child: content,
+                  ),
+                ],
               ),
-              Expanded(
-                flex: 1,
-                child: Container(),
-              )
-            ],
-          ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Container(),
+            )
+          ],
         ),
-        Positioned(child: muteVideo ? Container() : videoView ?? Container()),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: SizedBox(
-            height: 33,
-            child: bottom,
-          ),
+      ),
+      Positioned(child: muteVideo ? Container() : videoView ?? Container()),
+      Positioned(
+        left: 0,
+        right: 0,
+        bottom: 0,
+        child: SizedBox(
+          height: 33,
+          child: bottom,
         ),
-      ],
-    );
+      ),
+    ];
+
+    if (isWaiting) {
+      positionList.add(const Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 5.0,
+          color: Colors.grey,
+        ),
+      ));
+    }
+
+    content = Stack(children: positionList);
 
     return content;
   }

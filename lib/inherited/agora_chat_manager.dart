@@ -33,10 +33,12 @@ class AgoraChatEventHandler {
   final void Function(String callId, AgoraChatCallEndReason reason)
       onCallEndReason;
   final VoidCallback onCallAccept;
+  final void Function(String callId, String userId) onUserRemoved;
   AgoraChatEventHandler({
     required this.onError,
     required this.onCallEndReason,
     required this.onCallAccept,
+    required this.onUserRemoved,
   });
 }
 
@@ -60,7 +62,6 @@ class AgoraChatManager {
   final String key = "AgoraChatCallKit";
   final AgoraChatEventHandler handler;
   Duration timeoutDuration = const Duration(seconds: 30);
-  bool _bNeedSwitchToVoice = false;
 
   /// 应答 timer，当呼出时需要把callId和计时器放到map中，计时器终止时移除callId。
   /// 目的是确保被叫方收到的通话有效，
@@ -399,11 +400,6 @@ class AgoraChatManager {
       kTs: ts,
     };
 
-    if (model.curCall?.callType == AgoraChatCallType.audio_1v1 &&
-        _bNeedSwitchToVoice) {
-      attributes[kVideoToVoice] == true;
-    }
-
     msg.attributes = attributes;
     ChatClient.getInstance.chatManager.sendMessage(msg);
     confirmTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
@@ -447,7 +443,6 @@ class AgoraChatManager {
     };
 
     ChatClient.getInstance.chatManager.sendMessage(msg);
-    printMsg("sendCancelCallMsgToCallee", msg);
   }
 
   void registerChatEvent() {
@@ -551,6 +546,12 @@ class AgoraChatManager {
     return model.curCall!.callId;
   }
 
+  void removeUser(String userId) {
+    if (model.curCall != null) {
+      handler.onUserRemoved(model.curCall!.callId, userId);
+    }
+  }
+
   Future<String> startInviteUsers(
     List<String> userIds,
     Map<String, String>? ext,
@@ -558,10 +559,6 @@ class AgoraChatManager {
     if (userIds.isEmpty) {
       throw AgoraChatCallError.process(
           AgoraChatCallErrorProcessCode.invalidParam, 'Require remote userId');
-    }
-    if (busy) {
-      throw AgoraChatCallError.process(
-          AgoraChatCallErrorProcessCode.busy, 'Current is busy');
     }
 
     if (model.curCall != null) {
@@ -582,7 +579,7 @@ class AgoraChatManager {
           callTimerDic.remove(element);
           if (model.curCall != null) {
             sendCancelCallMsgToCallee(element, model.curCall!.callId);
-            // 需要回调用户离开
+            removeUser(element);
           }
         });
       }
@@ -611,7 +608,7 @@ class AgoraChatManager {
           callTimerDic.remove(element);
           if (model.curCall != null) {
             sendCancelCallMsgToCallee(element, model.curCall!.callId);
-            // 需要回调用户离开
+            removeUser(element);
           }
         });
       }

@@ -32,6 +32,9 @@ class AgoraChatCallKitManagerImpl {
           onError: (error) {
             onError(error);
           },
+          onUserRemoved: (callId, userId) {
+            onUserRemoved(callId, userId);
+          },
         ), (newState, preState) {
       stateChanged(newState, preState);
     });
@@ -254,6 +257,12 @@ extension ChatEvent on AgoraChatCallKitManagerImpl {
       value.onError?.call(error);
     });
   }
+
+  void onUserRemoved(String callId, String userId) {
+    handlerMap.forEach((key, value) {
+      value.onUserRemoved?.call(callId, userId);
+    });
+  }
 }
 
 extension RTCEvent on AgoraChatCallKitManagerImpl {
@@ -339,7 +348,14 @@ extension RTCEvent on AgoraChatCallKitManagerImpl {
 
   void onRemoteVideoStateChanged(
       int remoteUid, RemoteVideoState state, RemoteVideoStateReason reason) {}
-  void onActiveSpeaker(int uid) {}
+
+  void onActiveSpeaker(int uid) {
+    String? userId = _chat.model.curCall!.allUserAccounts[uid];
+    handlerMap.forEach((key, value) {
+      value.onActiveSpeaker?.call(uid, userId);
+    });
+  }
+
   void onRTCError(ErrorCodeType err, String desc) {
     _chat.clearInfo();
     if (err == ErrorCodeType.errTokenExpired ||

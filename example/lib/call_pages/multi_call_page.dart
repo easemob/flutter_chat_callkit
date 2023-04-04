@@ -1,27 +1,31 @@
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
+import 'package:agora_chat_callkit/inherited/agora_chat_manager.dart';
 import 'package:example/call_pages/call_button.dart';
 import 'package:example/call_pages/multi_call_item_view.dart';
 import 'package:example/call_pages/multi_call_view.dart';
+import 'package:example/contact_page.dart';
 import 'package:flutter/material.dart';
 
 class MultiCallPage extends StatefulWidget {
   factory MultiCallPage.call(List<String> userList) {
-    return MultiCallPage(userList, isCaller: true);
+    return MultiCallPage(userList: userList, isCaller: true);
   }
 
   factory MultiCallPage.receive(String callId, String caller) {
-    return MultiCallPage([caller], isCaller: false, callId: callId);
+    return MultiCallPage(isCaller: false, callId: callId, caller: caller);
   }
 
-  const MultiCallPage(
-    this.userList, {
+  const MultiCallPage({
     required this.isCaller,
+    this.userList,
+    this.caller,
     this.callId,
     super.key,
   });
   final bool isCaller;
+  final String? caller;
   final String? callId;
-  final List<String> userList;
+  final List<String>? userList;
 
   @override
   State<MultiCallPage> createState() => _MultiCallPageState();
@@ -31,6 +35,7 @@ class _MultiCallPageState extends State<MultiCallPage> {
   final PageController _controller = PageController();
   bool mute = false;
   bool cameraOn = true;
+  bool isCalling = false;
   List<MultiCallItemView> list = [];
   String? callId;
   @override
@@ -40,26 +45,28 @@ class _MultiCallPageState extends State<MultiCallPage> {
     AgoraChatCallManager.initRTC().then((value) {
       afterInit();
     });
-
-    _controller.addListener(() {});
   }
 
   Future<void> afterInit() async {
-    if (widget.isCaller) {
-      for (var element in widget.userList) {
-        list.add(MultiCallItemView(
-          userId: element,
-        ));
-      }
-      String? current = ChatClient.getInstance.currentUserId;
-      list.insert(
-          0,
-          MultiCallItemView(
-            userId: current!,
-            videoView: AgoraChatCallManager.getLocalVideoView(),
-          ));
-      callId = await AgoraChatCallManager.startInviteUsers(widget.userList);
+    if (widget.isCaller && widget.userList != null) {
+      isCalling = true;
+      callId = await AgoraChatCallManager.startInviteUsers(widget.userList!);
     }
+
+    widget.userList?.forEach((element) {
+      list.add(MultiCallItemView(
+        userId: element,
+      ));
+    });
+
+    String? current = ChatClient.getInstance.currentUserId;
+    list.insert(
+        0,
+        MultiCallItemView(
+          userId: current!,
+          isWaiting: false,
+          videoView: AgoraChatCallManager.getLocalVideoView(),
+        ));
     setState(() {});
   }
 
@@ -94,6 +101,7 @@ class _MultiCallPageState extends State<MultiCallPage> {
             list.add(MultiCallItemView(
               agoraUid: agoraUid,
               userId: userId,
+              isWaiting: false,
               videoView: AgoraChatCallManager.getRemoteVideoView(agoraUid),
             ));
           });
@@ -105,6 +113,11 @@ class _MultiCallPageState extends State<MultiCallPage> {
           });
         },
         onCallEnd: (callId, reason) => Navigator.of(context).pop(),
+        onUserRemoved: (callId, userId) {
+          setState(() {
+            list.removeWhere((element) => element.userId == userId);
+          });
+        },
       ),
     );
   }
@@ -143,6 +156,13 @@ class _MultiCallPageState extends State<MultiCallPage> {
       children: children,
     );
 
+    List<Widget> bottomList = [];
+    if (widget.isCaller || isCalling) {
+      bottomList = [cameraButton(), muteButton(), hangupButton()];
+    } else {
+      bottomList = [cameraButton(), hangupButton(), answerButton()];
+    }
+
     content = Column(
       mainAxisSize: MainAxisSize.max,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -150,12 +170,27 @@ class _MultiCallPageState extends State<MultiCallPage> {
         Expanded(child: content),
         SizedBox(
           height: 143,
-          child: bottomWidget([
-            cameraButton(),
-            muteButton(),
-            hangupButton(),
-          ]),
+          child: bottomWidget(bottomList),
         ),
+      ],
+    );
+
+    List<Widget> topWidget = [switchCameraButton(), const SizedBox(width: 10)];
+    if (isCalling) {
+      topWidget.addAll([inviteUserButton(), const SizedBox(width: 10)]);
+    }
+
+    Widget top = SafeArea(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: topWidget,
+      ),
+    );
+
+    content = Stack(
+      children: [
+        Positioned(child: content),
+        Positioned(top: 0, left: 0, right: 0, child: top),
       ],
     );
 
@@ -194,6 +229,7 @@ class _MultiCallPageState extends State<MultiCallPage> {
       selected: false,
       callback: () async {
         await AgoraChatCallManager.answer(widget.callId!);
+        setState(() => isCalling = true);
       },
       selectImage: Image.asset("images/answer.png"),
       backgroundColor: const Color.fromRGBO(0, 206, 118, 1),
@@ -233,6 +269,45 @@ class _MultiCallPageState extends State<MultiCallPage> {
       },
       selectImage: Image.asset("images/mic_off.png"),
       unselectImage: Image.asset("images/mic_on.png"),
+    );
+  }
+
+  Widget switchCameraButton() {
+    return button('switch_camera', () {
+      AgoraChatCallManager.switchCamera();
+    });
+  }
+
+  Widget inviteUserButton() {
+    return button('invite_user', () {
+      Navigator.of(context).push(MaterialPageRoute(builder: (ctx) {
+        return const ContactPage(isMulti: true);
+      })).then((value) {
+        if (value != null && value is List<String>) {
+          AgoraChatCallManager.startInviteUsers(value);
+          return value;
+        }
+      }).then((value) {
+        value?.forEach((element) {
+          list.add(MultiCallItemView(userId: element));
+        });
+        setState(() {});
+      });
+    });
+  }
+
+  Widget button(String imageName, VoidCallback action) {
+    return InkWell(
+      onTap: action,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: const Color.fromRGBO(255, 255, 255, 0.2),
+        ),
+        child: Image.asset('images/$imageName.png'),
+      ),
     );
   }
 }
