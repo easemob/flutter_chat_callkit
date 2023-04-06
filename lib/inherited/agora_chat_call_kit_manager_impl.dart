@@ -120,11 +120,6 @@ class AgoraChatCallKitManagerImpl {
   }
 
   Future<void> answer(String callId) async {
-    if (_chat.model.curCall != null) {
-      if (_chat.model.curCall!.callType != AgoraChatCallType.audio_1v1) {
-        await _rtc.enableLocalView();
-      }
-    }
     return _chat.answerCall(callId);
   }
 
@@ -233,8 +228,6 @@ extension ChatEvent on AgoraChatCallKitManagerImpl {
           if (_chat.model.curCall == null) return;
           if (_chat.model.curCall!.callType == AgoraChatCallType.multi &&
               _chat.model.curCall!.isCaller) {
-            // await _rtc.enableVideo();
-            // await _rtc.startPreview();
             await fetchToken();
           }
         }
@@ -364,8 +357,9 @@ extension RTCEvent on AgoraChatCallKitManagerImpl {
       handlerMap.forEach((key, value) {
         value.onError?.call(AgoraChatCallError.rtc(err.index, "RTC Error"));
       });
+    } else {
+      debugPrint("join error");
     }
-    debugPrint("joinError: $desc");
   }
 }
 

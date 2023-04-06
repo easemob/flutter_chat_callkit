@@ -3,6 +3,7 @@ import 'package:example/call_pages/multi_call_page.dart';
 import 'package:example/tools/token_tool.dart';
 
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'call_pages/single_call_page.dart';
 import 'contact_page.dart';
@@ -137,7 +138,7 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    await [Permission.microphone, Permission.camera].request().then((value) {
+    [Permission.microphone, Permission.camera].request().then((value) {
       Navigator.of(context).push(MaterialPageRoute(builder: (context) {
         return page;
       }));

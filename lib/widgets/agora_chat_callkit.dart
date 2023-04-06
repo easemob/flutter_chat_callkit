@@ -1,38 +1,6 @@
-import 'dart:async';
-
 import 'package:agora_chat_callkit/inherited/agora_chat_call_kit_manager_impl.dart';
-import 'package:agora_chat_callkit/models/agora_chat_call_user_mapper.dart';
 
 import 'package:flutter/material.dart';
-
-String kAction = "action";
-String kChannelName = "channelName";
-String kCallType = "type";
-String kCallerDevId = "callerDevId";
-String kCallId = "callId";
-String kTs = "ts";
-String kMsgType = "msgType";
-String kCalleeDevId = "calleeDevId";
-String kCallStatus = "status";
-String kCallResult = "result";
-String kInviteAction = "invite";
-String kAlertAction = "alert";
-String kConfirmRingAction = "confirmRing";
-String kCancelCallAction = "cancelCall";
-String kAnswerCallAction = "answerCall";
-String kConfirmCalleeAction = "confirmCallee";
-String kVideoToVoice = "videoToVoice";
-String kBusyResult = "busy";
-String kAcceptResult = "accept";
-String kRefuseResult = "refuse";
-String kMsgTypeValue = "rtcCallWithAgora";
-String kExt = "ext";
-
-typedef RtcTokenHandler = Future<Map<String, int>> Function(
-    String channel, String agoraAppId, int? agoraUid);
-
-typedef UserMapperHandler = Future<AgoraChatCallUserMapper?> Function(
-    String channel, int agoraUid);
 
 class AgoraChatCallKit extends StatefulWidget {
   const AgoraChatCallKit({

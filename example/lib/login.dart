@@ -1,5 +1,4 @@
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
-import 'package:example/config.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_easyloading/flutter_easyloading.dart';

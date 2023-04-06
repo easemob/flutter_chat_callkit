@@ -58,10 +58,6 @@ class AgoraChatCallManager {
     return _impl.getRemoteVideoView(agoraUid);
   }
 
-  // static List<AgoraVideoView> getRemoteVideoViews() {
-  //   return _impl.getRemoteVideoViews();
-  // }
-
   static Future<void> mute() {
     return _impl.mute();
   }

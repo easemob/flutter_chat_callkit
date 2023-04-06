@@ -63,7 +63,8 @@ class AgoraRTCManager {
       onUserEnableVideo: (connection, remoteUid, enabled) {
         log('onUserEnableVideo');
       },
-      onLocalVideoStats: (connection, stats) {        log("onLocalVideoStats");
+      onLocalVideoStats: (connection, stats) {
+        log("onLocalVideoStats");
       },
       onVideoDeviceStateChanged: (deviceId, deviceType, deviceState) {
         log("onVideoDeviceStateChanged");
@@ -189,19 +190,6 @@ class AgoraRTCManager {
     String channel,
     int uid,
   ) async {
-    if (type == AgoraChatCallType.audio_1v1) {
-      await enableAudio();
-    } else {
-      await enableVideo();
-      await startPreview();
-    }
-
-    // await _engine.joinChannel(
-    //     token: token,
-    //     channelId: channel,
-    //     uid: uid,
-    //     options: const ChannelMediaOptions());
-
     try {
       await _engine.joinChannel(
           token: token,

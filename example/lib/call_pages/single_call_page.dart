@@ -22,52 +22,6 @@ enum SingleCallType {
 }
 
 class SingleCallPage extends StatefulWidget {
-/*
-  factory SingleCallPage.receive(
-    String userId,
-    String callId, [
-    String? nickname,
-    TextStyle? nicknameStyle,
-    TextStyle? timeStyle,
-    Widget? avatar,
-    Widget? background,
-    bool isVideo = false,
-  ]) {
-    return SingleCallPage(
-      userId,
-      callId: callId,
-      avatar: avatar,
-      nickname: nickname,
-      background: background,
-      nicknameTextStyle: nicknameStyle,
-      timeTextStyle: timeStyle,
-      type: isVideo ? AgoraChatCallType.video_1v1 : AgoraChatCallType.audio_1v1,
-      calling: false,
-    );
-  }
-
-  factory SingleCallPage.call(
-    String userId, [
-    String? nickname,
-    TextStyle? nicknameStyle,
-    TextStyle? timeStyle,
-    Widget? avatar,
-    Widget? background,
-    bool isVideo = false,
-  ]) {
-    return SingleCallPage(
-      userId,
-      avatar: avatar,
-      nickname: nickname,
-      background: background,
-      nicknameTextStyle: nicknameStyle,
-      timeTextStyle: timeStyle,
-      type: isVideo ? AgoraChatCallType.video_1v1 : AgoraChatCallType.audio_1v1,
-      calling: false,
-    );
-  }
-  */
-
   const SingleCallPage(
     this.userId, {
     this.callId,
@@ -96,11 +50,9 @@ class SingleCallPage extends StatefulWidget {
 
 class _SingleCallPageState extends State<SingleCallPage> {
   bool holding = true;
-  bool startCalling = false;
   bool speakerOn = false;
   bool mute = false;
   bool cameraOn = true;
-  bool hiddenWidgets = false;
   int time = 0;
   Timer? timer;
   String? callId;
@@ -109,6 +61,8 @@ class _SingleCallPageState extends State<SingleCallPage> {
 
   bool hasInit = false;
   bool backgroundVideo = true;
+
+  int? remoteAgoraUid;
 
   late SingleCallType currentType;
 
@@ -171,8 +125,10 @@ class _SingleCallPageState extends State<SingleCallPage> {
 
   void call() async {
     try {
-      callId = await AgoraChatCallManager.startSingleCall(widget.userId,
-          type: widget.type);
+      callId = await AgoraChatCallManager.startSingleCall(
+        widget.userId,
+        type: widget.type,
+      );
     } catch (e) {
       Navigator.of(context).pop();
     }
@@ -182,10 +138,10 @@ class _SingleCallPageState extends State<SingleCallPage> {
     AgoraChatCallManager.addEventListener(
       "key",
       AgoraChatCallKitEventHandler(
-        onJoinedChannel: (channel) {},
-        onUserLeaved: (agoraUid, userId) {},
         onCallEnd: (callId, reason) => Navigator.of(context).pop(),
-        onFirstRemoteVideoDecoded: remoteUserOpenVideo,
+        onUserJoined: onUserJoined,
+        onUserMuteVideo: onUserMuteVideo,
+        onUserMuteAudio: onUserMuteAudio,
       ),
     );
   }
@@ -194,13 +150,29 @@ class _SingleCallPageState extends State<SingleCallPage> {
     AgoraChatCallManager.removeEventListener("key");
   }
 
-  void remoteUserOpenVideo(
-      int agoraUid, String? userId, int width, int height) {
+  void onUserMuteAudio(int agoraUid, bool muted) {
+    if (agoraUid != remoteAgoraUid) return;
+    setState(() {});
+  }
+
+  void onUserMuteVideo(int agoraUid, bool muted) {
+    if (widget.type == AgoraChatCallType.audio_1v1 ||
+        agoraUid != remoteAgoraUid) return;
+    if (muted) {
+      removeVideoWidget = Container();
+    } else {
+      removeVideoWidget = AgoraChatCallManager.getRemoteVideoView(
+        agoraUid,
+      );
+    }
+
+    setState(() {});
+  }
+
+  void onUserJoined(agoraUid, userId) {
     if (userId == widget.userId) {
-      removeVideoWidget = AgoraChatCallManager.getRemoteVideoView(agoraUid);
-      setState(() {
-        holding = false;
-      });
+      remoteAgoraUid = agoraUid;
+      startTimer();
     }
   }
 
@@ -257,9 +229,8 @@ class _SingleCallPageState extends State<SingleCallPage> {
     }
 
     List<Widget> list = [
-      Positioned.fill(
-          child: widget.background ?? Container(color: Colors.grey)),
       Positioned.fill(child: backgroundWidget()),
+      Positioned.fill(child: backgroundMaskWidget()),
       Positioned.fill(
         top: 55,
         bottom: 60,
@@ -274,6 +245,10 @@ class _SingleCallPageState extends State<SingleCallPage> {
   }
 
   Widget backgroundWidget() {
+    return widget.background ?? Container(color: Colors.grey);
+  }
+
+  Widget backgroundMaskWidget() {
     if (!hasInit) return const Offstage();
     Widget content;
     if (backgroundVideo && removeVideoWidget != null) {
@@ -324,7 +299,6 @@ class _SingleCallPageState extends State<SingleCallPage> {
 
   Widget audioCallInWidget() {
     Widget content = avatarWidget();
-
     content = Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -351,7 +325,6 @@ class _SingleCallPageState extends State<SingleCallPage> {
 
   Widget audioCallOutWidget() {
     Widget content = avatarWidget();
-
     content = Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -359,7 +332,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
         const SizedBox(height: 10),
         nicknameWidget(),
         const SizedBox(height: 10),
-        timeWidget(holding ? 'Calling...' : timerToStr(time)),
+        timeWidget(),
       ],
     );
 
@@ -390,7 +363,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
           const SizedBox(height: 10),
           nicknameWidget(),
           const SizedBox(height: 10),
-          timeWidget(holding ? 'Calling...' : timerToStr(time)),
+          timeWidget(),
         ],
       );
     } else {
@@ -436,7 +409,6 @@ class _SingleCallPageState extends State<SingleCallPage> {
         clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(100),
-          color: Colors.red,
         ),
         child: widget.avatar ?? Image.asset('images/avatar.png'),
       ),
@@ -575,9 +547,9 @@ class _SingleCallPageState extends State<SingleCallPage> {
     );
   }
 
-  Text timeWidget(String str) {
+  Text timeWidget([String? str]) {
     return Text(
-      str,
+      str ?? (holding ? 'Calling...' : timerToStr(time)),
       textAlign: TextAlign.center,
       style: widget.timeTextStyle ??
           const TextStyle(
