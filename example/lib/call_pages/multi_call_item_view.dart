@@ -100,10 +100,7 @@ class MultiCallItemView extends StatelessWidget {
                   Container(
                     clipBehavior: Clip.hardEdge,
                     decoration: const BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(50),
-                      ),
+                      borderRadius: BorderRadius.all(Radius.circular(50)),
                     ),
                     width: 100,
                     height: 100,

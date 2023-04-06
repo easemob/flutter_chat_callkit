@@ -61,6 +61,10 @@ class _HomePageState extends State<HomePage> {
               onPressed: multiCall,
               child: const Text("multi call"),
             ),
+            ElevatedButton(
+              onPressed: logout,
+              child: const Text("logout"),
+            ),
           ],
         ),
       ),
@@ -101,6 +105,12 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void logout() async {
+    await ChatClient.getInstance.logout().then((value) {
+      Navigator.of(context).popAndPushNamed("login");
+    });
+  }
+
   void onReceiveCall(
     String userId,
     String callId,
@@ -127,8 +137,10 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-      return page;
-    }));
+    await [Permission.microphone, Permission.camera].request().then((value) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+        return page;
+      }));
+    });
   }
 }

@@ -32,6 +32,8 @@ dependencies:
     sdk: flutter
 
   flutter_easyloading: ^3.0.5
+  
+  permission_handler: ^10.2.0
 
   agora_chat_callkit:
     path: ../

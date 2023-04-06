@@ -116,8 +116,9 @@ class AgoraChatManager {
     final channel = ext[kChannelName] ?? "";
 
     final isValid = ext[kCallStatus] ?? false;
-    final callType = AgoraChatCallType.values[(ext[kCallType] ?? 0)];
-    final isVideoToVoice = ext[kVideoToVoice] ?? false;
+    num type = ext[kCallType] ?? 0;
+
+    final callType = AgoraChatCallType.values[type.toInt()];
     Map<String, String>? callExt = (ext[kExt] ?? {}).cast<String, String>();
 
     // 收到邀请
@@ -243,9 +244,6 @@ class AgoraChatManager {
           // 非多人模式，是呼出状态时
           if (model.state == AgoraChatCallState.outgoing) {
             if (result == kAcceptResult) {
-              if (isVideoToVoice) {
-                // TODO: 如果对方同意，同时按下了视频转音频，需要告知ui
-              }
               model.state = AgoraChatCallState.answering;
               ringTimer?.cancel();
               ringTimer = null;

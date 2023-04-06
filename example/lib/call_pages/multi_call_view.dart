@@ -24,25 +24,15 @@ class _MultiCallViewState extends State<MultiCallView> {
         children: list,
       );
     } else if (list.length == 3) {
-      content = Row(
-        children: list.sublist(0, 2),
-      );
-      content = Column(
-        children: [Expanded(child: content), list.last],
-      );
+      content = Row(children: list.sublist(0, 2));
+      content = Column(children: [Expanded(child: content), list.last]);
     } else {
-      content = Row(
-        children: list.sublist(0, 2),
-      );
-      Widget bottom = Row(
-        children: list.sublist(2, 4),
-      );
-      content = Column(
-        children: [
-          Expanded(child: content),
-          Expanded(child: bottom),
-        ],
-      );
+      content = Row(children: list.sublist(0, 2));
+      Widget bottom = Row(children: list.sublist(2, 4));
+      content = Column(children: [
+        Expanded(child: content),
+        Expanded(child: bottom),
+      ]);
     }
     return content;
   }

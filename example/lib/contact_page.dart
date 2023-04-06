@@ -47,10 +47,8 @@ class _ContactPageState extends State<ContactPage> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: refresh, //下拉刷新回调
-        displacement: 40, //指示器显示时距顶部位置
-        color: Colors.red,
-        backgroundColor: Colors.blue,
+        onRefresh: refresh,
+        displacement: 40,
         notificationPredicate: defaultScrollNotificationPredicate,
         child: ListView.builder(
             itemCount: users.length,

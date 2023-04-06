@@ -1,6 +1,6 @@
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
 import 'package:agora_chat_callkit/inherited/agora_chat_manager.dart';
-import 'package:agora_chat_callkit/inherited/agora_engine_manager.dart';
+import 'package:agora_chat_callkit/inherited/agora_rtc_manager.dart';
 
 import 'package:flutter/widgets.dart';
 
@@ -16,7 +16,7 @@ class AgoraChatCallKitManagerImpl {
   UserMapperHandler? userMapperHandler;
 
   late final AgoraChatManager _chat;
-  late final AgoraEngineManager _rtc;
+  late final AgoraRTCManager _rtc;
 
   Duration callTimeout = const Duration(seconds: 30);
 
@@ -39,7 +39,7 @@ class AgoraChatCallKitManagerImpl {
       stateChanged(newState, preState);
     });
 
-    _rtc = AgoraEngineManager(
+    _rtc = AgoraRTCManager(
       RTCEventHandler(
         onJoinChannelSuccess: () {
           onJoinChannelSuccess();

@@ -1,6 +1,8 @@
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
 import 'package:flutter/material.dart';
 
+import 'agora_chat_log_tool.dart';
+
 class RTCOptions {
   final AudioScenarioType? audioScenarioType;
   final ChannelProfileType? channelProfile;
@@ -50,13 +52,44 @@ class RTCEventHandler {
   final void Function(int uid)? onActiveSpeaker;
 }
 
-class AgoraEngineManager {
-  AgoraEngineManager(
+class AgoraRTCManager {
+  AgoraRTCManager(
     this.handler,
   ) {
     _handler = RtcEngineEventHandler(
+      onUserEnableLocalVideo: (connection, remoteUid, enabled) {
+        log('onUserEnableLocalVideo');
+      },
+      onUserEnableVideo: (connection, remoteUid, enabled) {
+        log('onUserEnableVideo');
+      },
+      onLocalVideoStats: (connection, stats) {        log("onLocalVideoStats");
+      },
+      onVideoDeviceStateChanged: (deviceId, deviceType, deviceState) {
+        log("onVideoDeviceStateChanged");
+      },
+      onVideoStopped: () {
+        log("onVideoStopped");
+      },
+      onLocalVideoStateChanged: (source, state, error) {
+        log("onLocalVideoStateChanged");
+      },
+      onRemoteVideoStats: (connection, stats) {
+        log("onRemoteVideoStats");
+      },
+      onVideoPublishStateChanged:
+          (source, channel, oldState, newState, elapseSinceLastState) {
+        log("onVideoPublishStateChanged");
+      },
+      onVideoSizeChanged:
+          (connection, sourceType, uid, width, height, rotation) {
+        log("onVideoSizeChanged");
+      },
+      onVideoSubscribeStateChanged:
+          (channel, uid, oldState, newState, elapseSinceLastState) {
+        log("onVideoSubscribeStateChanged");
+      },
       onError: handler.onError,
-      onRemoteVideoStats: (connection, stats) {},
       onJoinChannelSuccess: (connection, elapsed) {
         handler.onJoinChannelSuccess?.call();
       },
@@ -200,7 +233,7 @@ class AgoraEngineManager {
   }
 }
 
-extension EngineActions on AgoraEngineManager {
+extension EngineActions on AgoraRTCManager {
   Future<void> initRTC() {
     return initEngine();
   }
@@ -251,11 +284,13 @@ extension EngineActions on AgoraEngineManager {
 
   Future<void> startPreview() async {
     if (!_engineHasInit) return;
+    await _engine.enableLocalVideo(true);
     await _engine.startPreview();
   }
 
   Future<void> stopPreview() async {
     if (!_engineHasInit) return;
+    await _engine.enableLocalVideo(false);
     await _engine.stopPreview();
   }
 
