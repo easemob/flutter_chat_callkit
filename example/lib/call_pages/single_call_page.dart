@@ -22,12 +22,62 @@ enum SingleCallType {
 }
 
 class SingleCallPage extends StatefulWidget {
+  factory SingleCallPage.receive(
+    String userId,
+    String callId, {
+    AgoraChatCallType type = AgoraChatCallType.audio_1v1,
+    Widget? avatar,
+    Widget? remoteAvatar,
+    String? nickname,
+    String? remoteNickname,
+    Widget? backgroundWidget,
+  }) {
+    assert(type != AgoraChatCallType.multi,
+        "SingleCallPage must video_1v1 or audio_1v1 type.");
+
+    return SingleCallPage(
+      userId,
+      callId: callId,
+      type: type,
+      avatar: avatar,
+      nickname: nickname,
+      remoteAvatar: remoteAvatar,
+      remoteNickname: remoteNickname,
+      backgroundWidget: backgroundWidget,
+    );
+  }
+
+  factory SingleCallPage.call(
+    String userId, {
+    AgoraChatCallType type = AgoraChatCallType.audio_1v1,
+    Widget? avatar,
+    Widget? remoteAvatar,
+    String? nickname,
+    String? remoteNickname,
+    Widget? backgroundWidget,
+  }) {
+    assert(type != AgoraChatCallType.multi,
+        "SingleCallPage must video_1v1 or audio_1v1 type.");
+
+    return SingleCallPage(
+      userId,
+      type: type,
+      avatar: avatar,
+      nickname: nickname,
+      remoteAvatar: remoteAvatar,
+      remoteNickname: remoteNickname,
+      backgroundWidget: backgroundWidget,
+    );
+  }
+
   const SingleCallPage(
     this.userId, {
     this.callId,
     this.avatar,
     this.nickname,
-    this.background,
+    this.remoteAvatar,
+    this.remoteNickname,
+    this.backgroundWidget,
     this.nicknameTextStyle,
     this.timeTextStyle,
     this.type = AgoraChatCallType.audio_1v1,
@@ -37,7 +87,9 @@ class SingleCallPage extends StatefulWidget {
   final String userId;
   final Widget? avatar;
   final String? nickname;
-  final Widget? background;
+  final Widget? remoteAvatar;
+  final String? remoteNickname;
+  final Widget? backgroundWidget;
   final TextStyle? nicknameTextStyle;
   final TextStyle? timeTextStyle;
   final AgoraChatCallType type;
@@ -53,6 +105,8 @@ class _SingleCallPageState extends State<SingleCallPage> {
   bool speakerOn = false;
   bool mute = false;
   bool cameraOn = true;
+
+  bool remoteMute = false;
   int time = 0;
   Timer? timer;
   String? callId;
@@ -61,8 +115,6 @@ class _SingleCallPageState extends State<SingleCallPage> {
 
   bool hasInit = false;
   bool backgroundVideo = true;
-
-  int? remoteAgoraUid;
 
   late SingleCallType currentType;
 
@@ -151,15 +203,15 @@ class _SingleCallPageState extends State<SingleCallPage> {
   }
 
   void onUserMuteAudio(int agoraUid, bool muted) {
-    if (agoraUid != remoteAgoraUid) return;
-    setState(() {});
+    setState(() {
+      remoteMute = muted;
+    });
   }
 
   void onUserMuteVideo(int agoraUid, bool muted) {
-    if (widget.type == AgoraChatCallType.audio_1v1 ||
-        agoraUid != remoteAgoraUid) return;
+    if (widget.type == AgoraChatCallType.audio_1v1) return;
     if (muted) {
-      removeVideoWidget = Container();
+      removeVideoWidget = Container(color: Colors.black);
     } else {
       removeVideoWidget = AgoraChatCallManager.getRemoteVideoView(
         agoraUid,
@@ -171,7 +223,6 @@ class _SingleCallPageState extends State<SingleCallPage> {
 
   void onUserJoined(agoraUid, userId) {
     if (userId == widget.userId) {
-      remoteAgoraUid = agoraUid;
       startTimer();
     }
   }
@@ -242,7 +293,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
   }
 
   Widget backgroundWidget() {
-    return widget.background ?? Container(color: Colors.grey);
+    return widget.backgroundWidget ?? Container(color: Colors.grey);
   }
 
   Widget backgroundMaskWidget() {
@@ -291,7 +342,10 @@ class _SingleCallPageState extends State<SingleCallPage> {
   }
 
   Widget localWidget() {
-    return AgoraChatCallManager.getLocalVideoView() ?? const Offstage();
+    return cameraOn
+        ? AgoraChatCallManager.getLocalVideoView() ??
+            Container(color: Colors.black)
+        : Container(color: Colors.black);
   }
 
   Widget audioCallInWidget() {
@@ -402,12 +456,30 @@ class _SingleCallPageState extends State<SingleCallPage> {
     return SizedBox(
       width: 100,
       height: 100,
-      child: Container(
-        clipBehavior: Clip.hardEdge,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(100),
-        ),
-        child: widget.avatar ?? Image.asset('images/avatar.png'),
+      child: Stack(
+        children: [
+          Container(
+            clipBehavior: Clip.hardEdge,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(100),
+            ),
+            child: widget.avatar ?? Image.asset('images/avatar.png'),
+          ),
+          remoteMute
+              ? Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: Image.asset(
+                      'images/mic_off.png',
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+              : const Offstage(),
+        ],
       ),
     );
   }

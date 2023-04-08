@@ -34,5 +34,7 @@ class AgoraChatCallKitEventHandler {
 
   final void Function(int agoraUid, bool muted)? onUserMuteAudio;
   final void Function(int agoraUid, bool muted)? onUserMuteVideo;
-  final void Function(String callId, String userId)? onUserRemoved;
+  final void Function(
+          String callId, String userId, AgoraChatCallEndReason reason)?
+      onUserRemoved;
 }

@@ -34,7 +34,9 @@ class AgoraChatEventHandler {
   final void Function(String callId, AgoraChatCallEndReason reason)
       onCallEndReason;
   final VoidCallback onCallAccept;
-  final void Function(String callId, String userId) onUserRemoved;
+  final void Function(
+          String callId, String userId, AgoraChatCallEndReason reason)
+      onUserRemoved;
   AgoraChatEventHandler({
     required this.onError,
     required this.onCallEndReason,
@@ -215,7 +217,6 @@ class AgoraChatManager {
         handler.onCallEndReason
             .call(model.curCall!.callId, AgoraChatCallEndReason.remoteCancel);
         model.state = AgoraChatCallState.idle;
-        // TODO: 停止播放等待音
       } else {
         model.recvCalls.remove(callId);
       }
@@ -229,7 +230,7 @@ class AgoraChatManager {
         if (model.curCall?.callType == AgoraChatCallType.multi) {
           // 对方拒绝
           if (result != kAcceptResult) {
-            // TODO: 移除ui or 回调告诉ui，多人时被叫方拒绝
+            removeUser(from, AgoraChatCallEndReason.busy);
           }
           Timer? timer = callTimerDic.remove(from);
           if (timer != null) {
@@ -545,9 +546,9 @@ class AgoraChatManager {
     return model.curCall!.callId;
   }
 
-  void removeUser(String userId) {
+  void removeUser(String userId, AgoraChatCallEndReason reason) {
     if (model.curCall != null) {
-      handler.onUserRemoved(model.curCall!.callId, userId);
+      handler.onUserRemoved(model.curCall!.callId, userId, reason);
     }
   }
 
@@ -572,13 +573,13 @@ class AgoraChatManager {
           model.curCall!.channel,
           ext,
         );
-        // 需要更新ui，用户加入
+
         callTimerDic[element] = Timer.periodic(timeoutDuration, (timer) {
           timer.cancel();
           callTimerDic.remove(element);
           if (model.curCall != null) {
             sendCancelCallMsgToCallee(element, model.curCall!.callId);
-            removeUser(element);
+            removeUser(element, AgoraChatCallEndReason.remoteNoResponse);
           }
         });
       }
@@ -606,7 +607,7 @@ class AgoraChatManager {
           callTimerDic.remove(element);
           if (model.curCall != null) {
             sendCancelCallMsgToCallee(element, model.curCall!.callId);
-            removeUser(element);
+            removeUser(element, AgoraChatCallEndReason.remoteNoResponse);
           }
         });
       }

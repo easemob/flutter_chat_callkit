@@ -36,11 +36,13 @@ class _MultiCallPageState extends State<MultiCallPage> {
   bool cameraOn = true;
   bool isCalling = false;
   List<MultiCallItemView> list = [];
+  List<String>? currentList;
   String? callId;
   @override
   void initState() {
     super.initState();
     addCallKitListener();
+    currentList = widget.userList;
     AgoraChatCallManager.initRTC().then((value) {
       afterInit();
     });
@@ -52,7 +54,7 @@ class _MultiCallPageState extends State<MultiCallPage> {
       callId = await AgoraChatCallManager.startInviteUsers(widget.userList!);
     }
 
-    widget.userList?.forEach((element) {
+    currentList?.forEach((element) {
       list.add(MultiCallItemView(
         userId: element,
       ));
@@ -112,7 +114,7 @@ class _MultiCallPageState extends State<MultiCallPage> {
           });
         },
         onCallEnd: (callId, reason) => Navigator.of(context).pop(),
-        onUserRemoved: (callId, userId) {
+        onUserRemoved: (callId, userId, reason) {
           setState(() {
             list.removeWhere((element) => element.userId == userId);
           });
@@ -244,6 +246,14 @@ class _MultiCallPageState extends State<MultiCallPage> {
           await AgoraChatCallManager.cameraOn();
         } else {
           await AgoraChatCallManager.cameraOff();
+        }
+        String? currentUserId = ChatClient.getInstance.currentUserId;
+        int index = list.indexWhere((element) =>
+            currentUserId != null && element.userId == currentUserId);
+        if (index != -1) {
+          MultiCallItemView view = list[index];
+          view = view.copyWith(muteVideo: !cameraOn);
+          list[index] = view;
         }
         setState(() {});
       },

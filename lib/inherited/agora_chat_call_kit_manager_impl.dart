@@ -32,8 +32,8 @@ class AgoraChatCallKitManagerImpl {
           onError: (error) {
             onError(error);
           },
-          onUserRemoved: (callId, userId) {
-            onUserRemoved(callId, userId);
+          onUserRemoved: (callId, userId, reason) {
+            onUserRemoved(callId, userId, reason);
           },
         ), (newState, preState) {
       stateChanged(newState, preState);
@@ -251,9 +251,10 @@ extension ChatEvent on AgoraChatCallKitManagerImpl {
     });
   }
 
-  void onUserRemoved(String callId, String userId) {
+  void onUserRemoved(
+      String callId, String userId, AgoraChatCallEndReason reason) {
     handlerMap.forEach((key, value) {
-      value.onUserRemoved?.call(callId, userId);
+      value.onUserRemoved?.call(callId, userId, reason);
     });
   }
 }
