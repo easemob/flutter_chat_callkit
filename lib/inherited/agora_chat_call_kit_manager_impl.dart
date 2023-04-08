@@ -18,8 +18,6 @@ class AgoraChatCallKitManagerImpl {
   late final AgoraChatManager _chat;
   late final AgoraRTCManager _rtc;
 
-  Duration callTimeout = const Duration(seconds: 30);
-
   AgoraChatCallKitManagerImpl() {
     _chat = AgoraChatManager(
         AgoraChatEventHandler(
@@ -34,6 +32,9 @@ class AgoraChatCallKitManagerImpl {
           },
           onUserRemoved: (callId, userId, reason) {
             onUserRemoved(callId, userId, reason);
+          },
+          onAnswer: (callId) {
+            onAnswer(callId);
           },
         ), (newState, preState) {
       stateChanged(newState, preState);
@@ -77,6 +78,10 @@ class AgoraChatCallKitManagerImpl {
 
   set agoraAppId(String agoraAppId) {
     _rtc.agoraAppId = agoraAppId;
+  }
+
+  set callTimeout(Duration duration) {
+    _chat.timeoutDuration = duration;
   }
 
   // 用于设置通话的默认状态
@@ -228,6 +233,9 @@ extension ChatEvent on AgoraChatCallKitManagerImpl {
           if (_chat.model.curCall == null) return;
           if (_chat.model.curCall!.callType == AgoraChatCallType.multi &&
               _chat.model.curCall!.isCaller) {
+            // 多人主叫时，需要开启摄像头
+            await _rtc.enableVideo();
+            await _rtc.startPreview();
             await fetchToken();
           }
         }
@@ -242,6 +250,12 @@ extension ChatEvent on AgoraChatCallKitManagerImpl {
   void onCallEndReason(String callId, AgoraChatCallEndReason reason) {
     handlerMap.forEach((key, value) {
       value.onCallEnd?.call(callId, reason);
+    });
+  }
+
+  void onAnswer(String callId) {
+    handlerMap.forEach((key, value) {
+      value.onAnswer?.call(callId);
     });
   }
 

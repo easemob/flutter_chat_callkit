@@ -32,6 +32,12 @@ class _HomePageState extends State<HomePage> {
         "home",
         AgoraChatCallKitEventHandler(
           onReceiveCall: onReceiveCall,
+          onCallEnd: (callId, reason) {
+            debugPrint('call end: reason: $reason');
+          },
+          onAnswer: (callId) {
+            debugPrint('call answer: $callId');
+          },
         ));
   }
 
@@ -131,17 +137,23 @@ class _HomePageState extends State<HomePage> {
         page = MultiCallPage.receive(callId, userIds.first);
       }
     } else {
-      page = SingleCallPage(
-        userIds.first,
-        callId: callId,
-        type: callType,
-      );
+      if (callId == null) {
+        page = SingleCallPage.call(userIds.first, type: callType);
+      } else {
+        page = SingleCallPage.receive(userIds.first, callId, type: callType);
+      }
     }
 
     [Permission.microphone, Permission.camera].request().then((value) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-        return page;
-      }));
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (context) {
+          return page;
+        }),
+      ).then((value) {
+        if (value != null) {
+          debugPrint('call end: $value');
+        }
+      });
     });
   }
 }

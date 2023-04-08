@@ -13,6 +13,7 @@ class AgoraChatCallKitEventHandler {
     this.onUserMuteVideo,
     this.onActiveSpeaker,
     this.onUserRemoved,
+    this.onAnswer,
   });
   final void Function(AgoraChatCallError error)? onError;
 
@@ -29,12 +30,20 @@ class AgoraChatCallKitEventHandler {
 
   final void Function(String channel)? onJoinedChannel;
 
-  final void Function(String userId, String callId, AgoraChatCallType callType,
-      Map<String, String>? ext)? onReceiveCall;
+  final void Function(String callId)? onAnswer;
+
+  final void Function(
+    String userId,
+    String callId,
+    AgoraChatCallType callType,
+    Map<String, String>? ext,
+  )? onReceiveCall;
 
   final void Function(int agoraUid, bool muted)? onUserMuteAudio;
   final void Function(int agoraUid, bool muted)? onUserMuteVideo;
   final void Function(
-          String callId, String userId, AgoraChatCallEndReason reason)?
-      onUserRemoved;
+    String callId,
+    String userId,
+    AgoraChatCallEndReason reason,
+  )? onUserRemoved;
 }

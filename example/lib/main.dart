@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
         builder: (context, child) {
           return AgoraChatCallKit(
             agoraAppId: Config.agoraAppId,
-            timeoutDuration: const Duration(seconds: 10),
+            timeoutDuration: const Duration(seconds: 30),
             child: child!,
           );
         },

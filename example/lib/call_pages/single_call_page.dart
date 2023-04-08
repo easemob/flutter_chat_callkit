@@ -6,6 +6,8 @@ import 'package:example/tools/format_time_tool.dart';
 
 import 'package:flutter/material.dart';
 
+import 'call_end_info.dart';
+
 enum SingleCallType {
   // 音频呼入等待
   audioCallInHolding,
@@ -31,6 +33,7 @@ class SingleCallPage extends StatefulWidget {
     String? nickname,
     String? remoteNickname,
     Widget? backgroundWidget,
+    TextStyle? nicknameTextStyle,
   }) {
     assert(type != AgoraChatCallType.multi,
         "SingleCallPage must video_1v1 or audio_1v1 type.");
@@ -44,6 +47,7 @@ class SingleCallPage extends StatefulWidget {
       remoteAvatar: remoteAvatar,
       remoteNickname: remoteNickname,
       backgroundWidget: backgroundWidget,
+      nicknameTextStyle: nicknameTextStyle,
     );
   }
 
@@ -55,6 +59,7 @@ class SingleCallPage extends StatefulWidget {
     String? nickname,
     String? remoteNickname,
     Widget? backgroundWidget,
+    TextStyle? nicknameTextStyle,
   }) {
     assert(type != AgoraChatCallType.multi,
         "SingleCallPage must video_1v1 or audio_1v1 type.");
@@ -67,6 +72,7 @@ class SingleCallPage extends StatefulWidget {
       remoteAvatar: remoteAvatar,
       remoteNickname: remoteNickname,
       backgroundWidget: backgroundWidget,
+      nicknameTextStyle: nicknameTextStyle,
     );
   }
 
@@ -190,7 +196,11 @@ class _SingleCallPageState extends State<SingleCallPage> {
     AgoraChatCallManager.addEventListener(
       "key",
       AgoraChatCallKitEventHandler(
-        onCallEnd: (callId, reason) => Navigator.of(context).pop(),
+        onCallEnd: (callId, reason) => Navigator.of(context).pop(CallEndInfo(
+          callTime: time,
+          reason: reason,
+          remoteUserId: widget.userId,
+        )),
         onUserJoined: onUserJoined,
         onUserMuteVideo: onUserMuteVideo,
         onUserMuteAudio: onUserMuteAudio,

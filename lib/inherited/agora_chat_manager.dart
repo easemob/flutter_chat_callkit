@@ -35,13 +35,19 @@ class AgoraChatEventHandler {
       onCallEndReason;
   final VoidCallback onCallAccept;
   final void Function(
-          String callId, String userId, AgoraChatCallEndReason reason)
-      onUserRemoved;
+    String callId,
+    String userId,
+    AgoraChatCallEndReason reason,
+  ) onUserRemoved;
+
+  final void Function(String callId) onAnswer;
+
   AgoraChatEventHandler({
     required this.onError,
     required this.onCallEndReason,
     required this.onCallAccept,
     required this.onUserRemoved,
+    required this.onAnswer,
   });
 }
 
@@ -193,7 +199,7 @@ class AgoraChatManager {
             alertTimerDic.clear();
           }
           model.recvCalls.remove(callId);
-          ringTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+          ringTimer = Timer.periodic(timeoutDuration, (timer) {
             timer.cancel();
             ringTimer = null;
             if (model.curCall?.callId == callId) {
@@ -232,6 +238,7 @@ class AgoraChatManager {
           if (result != kAcceptResult) {
             removeUser(from, AgoraChatCallEndReason.busy);
           }
+
           Timer? timer = callTimerDic.remove(from);
           if (timer != null) {
             timer.cancel();
@@ -242,6 +249,7 @@ class AgoraChatManager {
               ringTimer = null;
             }
           }
+          onAnswer();
         } else {
           // 非多人模式，是呼出状态时
           if (model.state == AgoraChatCallState.outgoing) {
@@ -259,6 +267,7 @@ class AgoraChatManager {
               model.state = AgoraChatCallState.idle;
             }
           }
+          onAnswer();
           // 用于被叫方多设备的情况，被叫方收到后可以进行仲裁，只有收到这条后被叫方才能进行通话
           sendConfirmAnswerMsgToCallee(from, callId, result, calleeDevId);
         }
@@ -552,6 +561,12 @@ class AgoraChatManager {
     }
   }
 
+  void onAnswer() {
+    if (model.curCall?.callId != null) {
+      handler.onAnswer(model.curCall!.callId);
+    }
+  }
+
   Future<String> startInviteUsers(
     List<String> userIds,
     Map<String, String>? ext,
@@ -645,6 +660,7 @@ class AgoraChatManager {
       if (model.curCall!.isCaller == true) {
         return;
       }
+      onAnswer();
       sendAnswerMsg(
         model.curCall!.remoteUserAccount!,
         callId,

@@ -6,12 +6,36 @@ import 'package:example/contact_page.dart';
 import 'package:flutter/material.dart';
 
 class MultiCallPage extends StatefulWidget {
-  factory MultiCallPage.call(List<String> userList) {
-    return MultiCallPage(userList: userList, isCaller: true);
+  factory MultiCallPage.call(
+    List<String> userList, {
+    Widget? avatar,
+    String? nickname,
+    TextStyle? nicknameTextStyle,
+  }) {
+    return MultiCallPage(
+      userList: userList,
+      isCaller: true,
+      avatar: avatar,
+      nickname: nickname,
+      nicknameTextStyle: nicknameTextStyle,
+    );
   }
 
-  factory MultiCallPage.receive(String callId, String caller) {
-    return MultiCallPage(isCaller: false, callId: callId, caller: caller);
+  factory MultiCallPage.receive(
+    String callId,
+    String caller, {
+    Widget? avatar,
+    String? nickname,
+    TextStyle? nicknameTextStyle,
+  }) {
+    return MultiCallPage(
+      isCaller: false,
+      callId: callId,
+      caller: caller,
+      avatar: avatar,
+      nickname: nickname,
+      nicknameTextStyle: nicknameTextStyle,
+    );
   }
 
   const MultiCallPage({
@@ -19,12 +43,18 @@ class MultiCallPage extends StatefulWidget {
     this.userList,
     this.caller,
     this.callId,
+    this.avatar,
+    this.nickname,
+    this.nicknameTextStyle,
     super.key,
   });
   final bool isCaller;
   final String? caller;
   final String? callId;
+  final Widget? avatar;
+  final String? nickname;
   final List<String>? userList;
+  final TextStyle? nicknameTextStyle;
 
   @override
   State<MultiCallPage> createState() => _MultiCallPageState();
@@ -192,8 +222,51 @@ class _MultiCallPageState extends State<MultiCallPage> {
       children: [
         Positioned(child: content),
         Positioned(top: 0, left: 0, right: 0, child: top),
+        () {
+          return !isCalling ? beforeCallingWidget() : Container();
+        }()
       ],
     );
+
+    return content;
+  }
+
+  Widget beforeCallingWidget() {
+    Widget avatar = widget.avatar ?? Image.asset('images/avatar.png');
+
+    avatar = Container(
+      width: 100,
+      height: 100,
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(100)),
+      clipBehavior: Clip.hardEdge,
+      child: avatar,
+    );
+
+    Widget content = Column(
+      children: [
+        avatar,
+        const SizedBox(height: 10),
+        Text(
+          widget.nickname ?? widget.caller ?? "",
+          style: widget.nicknameTextStyle ??
+              const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  fontSize: 24),
+        ),
+        const SizedBox(height: 10),
+        const Text(
+          'Multi Call',
+          style: TextStyle(
+            fontWeight: FontWeight.w400,
+            color: Colors.white,
+            fontSize: 14,
+          ),
+        )
+      ],
+    );
+
+    content = Positioned(left: 0, right: 0, top: 120, child: content);
 
     return content;
   }
