@@ -177,6 +177,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
   }
 
   void startTimer() {
+    holding = false;
     timer?.cancel();
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
@@ -204,16 +205,12 @@ class _SingleCallPageState extends State<SingleCallPage> {
   Widget build(BuildContext context) {
     Widget? content;
     switch (currentType) {
-      case SingleCallType.audioCallOutHolding:
-        {
-          content = audioCallOutWidget();
-        }
-        break;
       case SingleCallType.audioCallInHolding:
         {
           content = audioCallInWidget();
         }
         break;
+      case SingleCallType.audioCallOutHolding:
       case SingleCallType.audioCallCalling:
         {
           content = audioCallOutWidget();
