@@ -17,7 +17,7 @@ class AgoraChatCallKitEventHandler {
   });
   final void Function(AgoraChatCallError error)? onError;
 
-  final void Function(String callId, AgoraChatCallEndReason reason)? onCallEnd;
+  final void Function(String? callId, AgoraChatCallEndReason reason)? onCallEnd;
 
   final void Function(int agoraUid, String? userId)? onUserLeaved;
 

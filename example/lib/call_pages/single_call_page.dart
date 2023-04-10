@@ -196,6 +196,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
     AgoraChatCallManager.addEventListener(
       "key",
       AgoraChatCallKitEventHandler(
+        onError: (error) {},
         onCallEnd: (callId, reason) => Navigator.of(context).pop(
           CallEndInfo(
             callId: callId,

@@ -365,7 +365,6 @@ extension RTCEvent on AgoraChatCallKitManagerImpl {
   }
 
   void onRTCError(ErrorCodeType err, String desc) {
-    _chat.clearInfo();
     if (err == ErrorCodeType.errTokenExpired ||
         err == ErrorCodeType.errInvalidToken ||
         err == ErrorCodeType.errFailed) {
@@ -373,8 +372,20 @@ extension RTCEvent on AgoraChatCallKitManagerImpl {
         value.onError?.call(AgoraChatCallError.rtc(err.index, "RTC Error"));
       });
     } else {
-      debugPrint("join error");
+      if (err == ErrorCodeType.errFailed) {
+        handlerMap.forEach((key, value) {
+          value.onError?.call(AgoraChatCallError.rtc(
+              AgoraChatCallErrorProcessCode.general,
+              "General error with no classified reason. Try calling the method again"));
+        });
+      }
+
+      handlerMap.forEach((key, value) {
+        value.onCallEnd
+            ?.call(_chat.model.curCall?.callId, AgoraChatCallEndReason.err);
+      });
     }
+    _chat.clearInfo();
   }
 }
 

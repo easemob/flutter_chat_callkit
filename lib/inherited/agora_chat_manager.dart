@@ -98,7 +98,6 @@ class AgoraChatManager {
 
   void clearInfo() {
     if (model.curCall != null) {
-      model.hasJoined = false;
       model.state = AgoraChatCallState.idle;
     }
   }
