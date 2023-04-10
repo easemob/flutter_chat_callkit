@@ -53,43 +53,27 @@ class RTCEventHandler {
 }
 
 class AgoraRTCManager {
+  void rtcLog(String method, ChatMessage msg) {
+    log("rtc method: $method, ${msg.toJson().toString()}");
+  }
+
   AgoraRTCManager(
     this.handler,
   ) {
     _handler = RtcEngineEventHandler(
-      onUserEnableLocalVideo: (connection, remoteUid, enabled) {
-        log('onUserEnableLocalVideo');
-      },
-      onUserEnableVideo: (connection, remoteUid, enabled) {
-        log('onUserEnableVideo');
-      },
-      onLocalVideoStats: (connection, stats) {
-        log("onLocalVideoStats");
-      },
-      onVideoDeviceStateChanged: (deviceId, deviceType, deviceState) {
-        log("onVideoDeviceStateChanged");
-      },
-      onVideoStopped: () {
-        log("onVideoStopped");
-      },
-      onLocalVideoStateChanged: (source, state, error) {
-        log("onLocalVideoStateChanged");
-      },
-      onRemoteVideoStats: (connection, stats) {
-        log("onRemoteVideoStats");
-      },
+      onUserEnableLocalVideo: (connection, remoteUid, enabled) {},
+      onUserEnableVideo: (connection, remoteUid, enabled) {},
+      onLocalVideoStats: (connection, stats) {},
+      onVideoDeviceStateChanged: (deviceId, deviceType, deviceState) {},
+      onVideoStopped: () {},
+      onLocalVideoStateChanged: (source, state, error) {},
+      onRemoteVideoStats: (connection, stats) {},
       onVideoPublishStateChanged:
-          (source, channel, oldState, newState, elapseSinceLastState) {
-        log("onVideoPublishStateChanged");
-      },
+          (source, channel, oldState, newState, elapseSinceLastState) {},
       onVideoSizeChanged:
-          (connection, sourceType, uid, width, height, rotation) {
-        log("onVideoSizeChanged");
-      },
+          (connection, sourceType, uid, width, height, rotation) {},
       onVideoSubscribeStateChanged:
-          (channel, uid, oldState, newState, elapseSinceLastState) {
-        log("onVideoSubscribeStateChanged");
-      },
+          (channel, uid, oldState, newState, elapseSinceLastState) {},
       onError: handler.onError,
       onJoinChannelSuccess: (connection, elapsed) {
         handler.onJoinChannelSuccess?.call();

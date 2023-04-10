@@ -196,11 +196,14 @@ class _SingleCallPageState extends State<SingleCallPage> {
     AgoraChatCallManager.addEventListener(
       "key",
       AgoraChatCallKitEventHandler(
-        onCallEnd: (callId, reason) => Navigator.of(context).pop(CallEndInfo(
-          callTime: time,
-          reason: reason,
-          remoteUserId: widget.userId,
-        )),
+        onCallEnd: (callId, reason) => Navigator.of(context).pop(
+          CallEndInfo(
+            callId: callId,
+            callTime: time,
+            reason: reason,
+            remoteUserId: widget.userId,
+          ),
+        ),
         onUserJoined: onUserJoined,
         onUserMuteVideo: onUserMuteVideo,
         onUserMuteAudio: onUserMuteAudio,

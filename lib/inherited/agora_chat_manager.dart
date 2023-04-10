@@ -6,6 +6,8 @@ import 'package:agora_chat_callkit/models/agora_chat_call_model.dart';
 import 'package:agora_chat_callkit/tools/agora_chat_callkit_tools.dart';
 import 'package:flutter/foundation.dart';
 
+import 'agora_chat_log_tool.dart';
+
 String kAction = "action";
 String kChannelName = "channelName";
 String kCallType = "type";
@@ -86,8 +88,8 @@ class AgoraChatManager {
     return model.curCall != null && model.state != AgoraChatCallState.idle;
   }
 
-  void printMsg(String method, ChatMessage msg) {
-    // debugPrint("-----------method: $method, ${msg.toJson().toString()}");
+  void chatLog(String method, ChatMessage msg) {
+    log("chat method: $method, ${msg.toJson().toString()}");
   }
 
   void onUserJoined() {
@@ -115,7 +117,7 @@ class AgoraChatManager {
   void parseMsg(ChatMessage message) async {
     Map ext = message.attributes ?? {};
     if (!ext.containsKey(kMsgType)) return;
-    printMsg("parseMsg", message);
+
     final from = message.from!;
     final msgType = ext[kMsgType];
     final callId = ext[kCallId] ?? "";
@@ -141,7 +143,7 @@ class AgoraChatManager {
         sendAnswerMsg(from, callId, kBusyResult, callerDevId);
         return;
       }
-      debugPrint("收到邀请！channel: $channel");
+
       // 将邀请放到收到的call中
       model.recvCalls[callId] = AgoraChatCall(
         callId: callId,
@@ -350,7 +352,7 @@ class AgoraChatManager {
 
     msg.attributes = attr;
     ChatClient.getInstance.chatManager.sendMessage(msg);
-    printMsg("sendInviteMsgToCallee", msg);
+    chatLog("sendInviteMsgToCallee", msg);
   }
 
   void sendAlertMsgToCaller(
@@ -370,7 +372,7 @@ class AgoraChatManager {
     };
     msg.attributes = attributes;
     ChatClient.getInstance.chatManager.sendMessage(msg);
-    printMsg("sendAlertMsgToCaller", msg);
+    chatLog("sendAlertMsgToCaller", msg);
   }
 
   void sendConfirmRingMsgToCallee(
@@ -392,7 +394,7 @@ class AgoraChatManager {
     msg.attributes = attributes;
 
     ChatClient.getInstance.chatManager.sendMessage(msg);
-    printMsg("sendConfirmRingMsgToCallee", msg);
+    chatLog("sendConfirmRingMsgToCallee", msg);
   }
 
   void sendAnswerMsg(
@@ -416,7 +418,7 @@ class AgoraChatManager {
       confirmTimer = null;
     });
 
-    printMsg("sendAnswerMsg", msg);
+    chatLog("sendAnswerMsg", msg);
   }
 
   void sendConfirmAnswerMsgToCallee(
@@ -437,7 +439,7 @@ class AgoraChatManager {
     };
     msg.attributes = attributes;
     ChatClient.getInstance.chatManager.sendMessage(msg);
-    printMsg("sendConfirmAnswerMsgToCallee", msg);
+    chatLog("sendConfirmAnswerMsgToCallee", msg);
   }
 
   void sendCancelCallMsgToCallee(String userId, String callId) {

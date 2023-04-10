@@ -2,10 +2,12 @@ import 'package:agora_chat_callkit/agora_chat_callkit.dart';
 
 class CallEndInfo {
   CallEndInfo({
+    required this.callId,
     required this.callTime,
     required this.remoteUserId,
     required this.reason,
   });
+  final String callId;
   final int callTime;
   final String remoteUserId;
   final AgoraChatCallEndReason reason;
