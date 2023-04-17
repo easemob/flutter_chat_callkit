@@ -8,8 +8,9 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  var options =
-      ChatOptions(appKey: Config.appkey, debugModel: true, autoLogin: true);
+  var options = ChatOptions(
+    appKey: Config.appkey,
+  );
   await ChatClient.getInstance.init(options);
   runApp(const MyApp());
 }
