@@ -5,6 +5,14 @@ class AgoraChatCallManager {
   static AgoraChatCallKitManagerImpl get _impl =>
       AgoraChatCallKitManagerImpl.instance;
 
+  /// Initiate a 1v1 call.
+  ///
+  /// Param [userId] called user id.
+  ///
+  /// Param [type] call type, see [AgoraChatCallType].
+  ///
+  /// Param [ext] additional information.
+  ///
   static Future<String> startSingleCall(
     String userId, {
     AgoraChatCallType type = AgoraChatCallType.audio_1v1,
@@ -13,6 +21,12 @@ class AgoraChatCallManager {
     return _impl.startSingleCall(userId, type: type, ext: ext);
   }
 
+  /// Initiate a multi-party call invitation.
+  ///
+  /// Param [userIds] Invited user.
+  ///
+  /// Param [ext] additional information.
+  ///
   static Future<String> startInviteUsers(
     List<String> userIds, {
     Map<String, String>? ext,
@@ -34,14 +48,14 @@ class AgoraChatCallManager {
 
   /// Answer the call.
   ///
-  /// Param [callId] the received call id;
+  /// Param [callId] the received call id.
   static Future<void> answer(String callId) {
     return _impl.answer(callId);
   }
 
   /// Hangup the call.
   ///
-  /// Param [callId] the received call id;
+  /// Param [callId] the received call id.
   static Future<void> hangup(String callId) {
     return _impl.hangup(callId);
   }
@@ -89,12 +103,12 @@ class AgoraChatCallManager {
     return _impl.unMute();
   }
 
-  /// Turn on the speaker
+  /// Turn on the speaker.
   static Future<void> speakerOn() {
     return _impl.speakerOn();
   }
 
-  /// Turn off the speaker
+  /// Turn off the speaker.
   static Future<void> speakerOff() {
     return _impl.speakerOff();
   }

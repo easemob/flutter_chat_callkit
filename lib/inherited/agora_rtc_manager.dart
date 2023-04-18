@@ -176,10 +176,11 @@ class AgoraRTCManager {
   ) async {
     try {
       await _engine.joinChannel(
-          token: token,
-          channelId: channel,
-          uid: uid,
-          options: const ChannelMediaOptions());
+        token: token,
+        channelId: channel,
+        uid: uid,
+        options: const ChannelMediaOptions(),
+      );
     } catch (e) {
       debugPrint("e: ${e.toString()}");
       handler.onError?.call(ErrorCodeType.errFailed,
