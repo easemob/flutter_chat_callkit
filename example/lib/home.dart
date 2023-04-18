@@ -19,26 +19,23 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-
+    // set agoraToken request handler.
     AgoraChatCallManager.setRTCTokenHandler((channel, agoraAppId, agoraUid) {
       return requestAppServerToken(channel, agoraAppId, agoraUid);
     });
 
+    // set agoraUid and userId mapper handler.
     AgoraChatCallManager.setUserMapperHandler((channel, agoraUid) {
       return requestAppServerUserMapper(channel, agoraUid);
     });
 
+    // add event listener.
     AgoraChatCallManager.addEventListener(
-        "home",
-        AgoraChatCallKitEventHandler(
-          onReceiveCall: onReceiveCall,
-          onCallEnd: (callId, reason) {
-            debugPrint('call end: reason: $reason');
-          },
-          onAnswer: (callId) {
-            debugPrint('call answer: $callId');
-          },
-        ));
+      "UNIQUE_HANDLER_ID",
+      AgoraChatCallKitEventHandler(
+        onReceiveCall: onReceiveCall,
+      ),
+    );
   }
 
   @override

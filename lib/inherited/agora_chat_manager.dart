@@ -1,11 +1,12 @@
 import 'dart:async';
 
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
-import 'package:agora_chat_callkit/models/agora_chat_call.dart';
-import 'package:agora_chat_callkit/models/agora_chat_call_model.dart';
-import 'package:agora_chat_callkit/tools/agora_chat_callkit_tools.dart';
+import 'package:agora_chat_callkit/inherited/agora_chat_call.dart';
+import 'package:agora_chat_callkit/inherited/agora_chat_call_model.dart';
+import 'package:agora_chat_callkit/inherited/tools/agora_chat_callkit_tools.dart';
 import 'package:flutter/foundation.dart';
 
+import 'agora_chat_call_enum.dart';
 import 'agora_chat_log_tool.dart';
 
 String kAction = "action";

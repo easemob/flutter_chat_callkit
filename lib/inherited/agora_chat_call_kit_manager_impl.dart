@@ -4,6 +4,8 @@ import 'package:agora_chat_callkit/inherited/agora_rtc_manager.dart';
 
 import 'package:flutter/widgets.dart';
 
+import 'agora_chat_call_enum.dart';
+
 class AgoraChatCallKitManagerImpl {
   static AgoraChatCallKitManagerImpl? _instance;
   static AgoraChatCallKitManagerImpl get instance {
@@ -346,22 +348,22 @@ extension RTCEvent on AgoraChatCallKitManagerImpl {
   }
 
   void onFirstRemoteVideoDecoded(int remoteUid, int width, int height) {
-    String? userId = _chat.model.curCall!.allUserAccounts[remoteUid];
-    if (_chat.model.curCall != null) {
-      handlerMap.forEach((key, value) {
-        value.onFirstRemoteVideoDecoded?.call(remoteUid, userId, width, height);
-      });
-    }
+    // String? userId = _chat.model.curCall!.allUserAccounts[remoteUid];
+    // if (_chat.model.curCall != null) {
+    //   handlerMap.forEach((key, value) {
+    //     value.onFirstRemoteVideoDecoded?.call(remoteUid, userId, width, height);
+    //   });
+    // }
   }
 
   void onRemoteVideoStateChanged(
       int remoteUid, RemoteVideoState state, RemoteVideoStateReason reason) {}
 
   void onActiveSpeaker(int uid) {
-    String? userId = _chat.model.curCall!.allUserAccounts[uid];
-    handlerMap.forEach((key, value) {
-      value.onActiveSpeaker?.call(uid, userId);
-    });
+    // String? userId = _chat.model.curCall!.allUserAccounts[uid];
+    // handlerMap.forEach((key, value) {
+    //   value.onActiveSpeaker?.call(uid, userId);
+    // });
   }
 
   void onRTCError(ErrorCodeType err, String desc) {

@@ -4,11 +4,11 @@
 
 `agora_chat_callkit` is a video and audio component library built on top of `agora_chat_sdk` and `agora_rtc_engine`. It provides logic modules for making and receiving calls, including 1v1 voice calls, 1v1 video calls, and multi-party audio and video calls. It uses agora_chat_sdk to handle call invitations and negotiations. After negotiations are complete, the AgoraChatCallManager.setRTCTokenHandler method is called back, and the agoraToken needs to be returned. The agoraToken must be provided by the developer.
 
-In a 1v1 audio/video call, the caller invites the receiver to join the call using the `AgoraChatCallManager#startSingleCall` method. The receiver receives the call invitation through the `AgoraChatCallKitEventHandler#onReceiveCall` callback, and can then handle the call using the `AgoraChatCallManager#answer` or `AgoraChatCallManager#hangup` methods. When hanging up, the `AgoraChatCallManager#hangup` method must be called, and the other party will receive the `AgoraChatCallKitEventHandler#onCallEnd` callback.
+In a 1v1 audio/video call, the caller invites the receiver to join the call using the `AgoraChatCallManager.startSingleCall` method. The receiver receives the call invitation through the `AgoraChatCallKitEventHandler.onReceiveCall` callback, and can then handle the call using the `AgoraChatCallManager.answer` or `AgoraChatCallManager.hangup` methods. When hanging up, the `AgoraChatCallManager.hangup` method must be called, and the other party will receive the `AgoraChatCallKitEventHandler.onCallEnd` callback.
 
-In multi-party audio and video calls, the `AgoraChatCallManager#startInviteUsers` is used to invite multiple users to the call. The called party will receive the call invitation through the `AgoraChatCallKitEventHandler#onReceiveCall` method, and can handle the call by using `AgoraChatCallManager#answer` or `AgoraChatCallManager#hangup`. When other users join or leave the call during the call, the `AgoraChatCallKitEventHandler#onUserJoined` and `AgoraChatCallKitEventHandler#onUserLeaved` methods will be called back, and UI should be modified accordingly. Multi-party calls do not end automatically, so when it is necessary to end the call, the `AgoraChatCallManager#hangup` method must be called actively.
+In multi-party audio and video calls, the `AgoraChatCallManager.startInviteUsers` is used to invite multiple users to the call. The called party will receive the call invitation through the `AgoraChatCallKitEventHandler.onReceiveCall` method, and can handle the call by using `AgoraChatCallManager.answer` or `AgoraChatCallManager.hangup`. When other users join or leave the call during the call, the `AgoraChatCallKitEventHandler.onUserJoined` and `AgoraChatCallKitEventHandler.onUserLeaved` methods will be called back, and UI should be modified accordingly. Multi-party calls do not end automatically, so when it is necessary to end the call, the `AgoraChatCallManager.hangup` method must be called actively.
 
-When conducting a 1v1 video call or a group video call, use the `AgoraChatCallManager#getLocalVideoView` method to obtain the local video view and the `AgoraChatCallManager#getRemoteVideoView` method to obtain the remote video view.
+When conducting a 1v1 video call or a group video call, use the `AgoraChatCallManager.getLocalVideoView` method to obtain the local video view and the `AgoraChatCallManager.getRemoteVideoView` method to obtain the remote video view.
 
 ## Dependencies
 
@@ -51,7 +51,7 @@ Privacy - Camera Usage Description, and add a note in the Value column.
 
 ## Prevent code obfuscation
 
-In the quick_start/android/app/proguard-rules.pro file, add the following lines to prevent code obfuscation:
+In the example/android/app/proguard-rules.pro file, add the following lines to prevent code obfuscation:
 ```
 -keep class com.hyphenate.** {*;}
 -dontwarn  com.hyphenate.**
@@ -81,8 +81,6 @@ dependencies:
 
 ## Usage
 
-To obtain `agoraToken`, you need to set up an AppServer and provide a mapping service for agoraUid and userId. In the demo, you can specify the AppServer by configuring `example/lib/config.dart`.
-
 You need to make sure the agora chat sdk is initialized before calling AgoraChatCallKit and AgoraChatCallKit widget at the top of you widget tree. You can add it in the `MaterialApp` builder.
 
 ```dart
@@ -110,13 +108,48 @@ class MyApp extends StatelessWidget {
 }
 ```
 
+### receive call
+
+Add `AgoraChatCallKitEventHandler` listening handler to the component with the longest life cycle.
+
+```
+AgoraChatCallManager.addEventListener(
+  "UNIQUE_HANDLER_ID",
+  AgoraChatCallKitEventHandler(
+    // Call back the method when you receive an invitation.
+    onReceiveCall(String userId, String callId, AgoraChatCallType callType, Map<String, String>? ext) {
+      // receive a call.
+    }
+  ),
+);
+```
+
+
+### answer call
+
+Upon receiving the onReceiveCall callback, the audio and video page can be displayed according to the callType.
+
+When you need to make an audio and video call, you need to call the `AgoraChatCallManager.initRTC` method first, at the end of the call, you need to call the `AgoraChatCallManager.releaseRTC` method.
+
+```
+// callId: in the onReceiveCall method callback.
+AgoraChatCallManager.answer(callId);
+```
+
+### hangup call
+
+```
+// callId: in the onReceiveCall method callback.
+AgoraChatCallManager.hangup(callId);
+```
+
 ## example
 
 See the example for the effect.
 
 ### quick start
 
-If demo is required, configure the following information in the `example/lib/config.dart` file:
+If demo is required, configure the following information in the `example/lib/config. dart` file:
 
 ```dart
 class Config {
@@ -129,34 +162,8 @@ class Config {
 }
 ```
 
-Add event listeners, which are located in the home.dart file in the demo.
+To obtain `agoraToken`, you need to set up an AppServer and provide a mapping service for agoraUid and userId.
 
-```
-  void initState() {
-    super.initState();
-
-    AgoraChatCallManager.setRTCTokenHandler((channel, agoraAppId, agoraUid) {
-      return requestAppServerToken(channel, agoraAppId, agoraUid);
-    });
-
-    AgoraChatCallManager.setUserMapperHandler((channel, agoraUid) {
-      return requestAppServerUserMapper(channel, agoraUid);
-    });
-
-    AgoraChatCallManager.addEventListener(
-        "home",
-        AgoraChatCallKitEventHandler(
-          onReceiveCall: onReceiveCall,
-          onCallEnd: (callId, reason) {
-            debugPrint('call end: reason: $reason');
-          },
-          onAnswer: (callId) {
-            debugPrint('call answer: $callId');
-          },
-        ));
-  }
-
-```
 
 ## License
 

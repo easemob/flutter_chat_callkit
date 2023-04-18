@@ -1,6 +1,6 @@
-import 'package:agora_chat_callkit/agora_chat_callkit_define.dart';
-import 'package:agora_chat_callkit/models/agora_chat_call.dart';
-import 'package:agora_chat_callkit/tools/agora_chat_callkit_tools.dart';
+import 'agora_chat_call.dart';
+import 'tools/agora_chat_callkit_tools.dart';
+import 'agora_chat_call_enum.dart';
 
 typedef AgoraChatCallStateChange = void Function(
     AgoraChatCallState newState, AgoraChatCallState preState);

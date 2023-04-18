@@ -1,5 +1,6 @@
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
 
+/// Agora chat callkit error.
 class AgoraChatCallError implements Exception {
   factory AgoraChatCallError.process(int code, String desc) {
     return AgoraChatCallError._(AgoraChatCallErrorType.process, code, desc);
