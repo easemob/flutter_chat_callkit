@@ -308,6 +308,10 @@ class _SingleCallPageState extends State<SingleCallPage> {
     content = Stack(
       children: list,
     );
+
+    content = Scaffold(
+      body: content,
+    );
     return content;
   }
 

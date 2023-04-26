@@ -3,8 +3,8 @@ import 'dart:io';
 import 'dart:convert' as convert;
 
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
-import 'package:example/config.dart';
-import 'package:flutter/foundation.dart';
+
+import '../config.dart';
 
 Future<Map<String, int>> requestAppServerToken(
   String channel,
@@ -18,7 +18,6 @@ Future<Map<String, int>> requestAppServerToken(
     accessToken = await ChatClient.getInstance.getAccessToken();
     userId = await ChatClient.getInstance.getCurrentUserId();
   } catch (e) {
-    debugPrint(e.toString());
     return {};
   }
   var httpClient = HttpClient();
@@ -43,7 +42,7 @@ Future<Map<String, int>> requestAppServerToken(
 
   if (response.statusCode == HttpStatus.ok) {
     var content = await response.transform(const Utf8Decoder()).join();
-    debugPrint(content);
+
     Map<String, dynamic>? map = convert.jsonDecode(content);
     if (map != null) {
       if (map["code"] == "RES_0K") {
@@ -52,7 +51,7 @@ Future<Map<String, int>> requestAppServerToken(
     }
   }
   httpClient.close();
-  debugPrint("get token: ${ret.toString()}");
+
   return ret;
 }
 
@@ -66,7 +65,6 @@ Future<AgoraChatCallUserMapper?> requestAppServerUserMapper(
     accessToken = await ChatClient.getInstance.getAccessToken();
     userId = await ChatClient.getInstance.getCurrentUserId();
   } catch (e) {
-    debugPrint(e.toString());
     return null;
   }
   var httpClient = HttpClient();

@@ -66,7 +66,7 @@ In the example/android/app/proguard-rules.pro file, add the following lines to p
 
 Integrate callkit, which can be downloaded locally or integrated through git.
 
-### Local integration
+### Local integration (temporary)
 
 ```dart
 dependencies:
@@ -74,7 +74,7 @@ dependencies:
         path: `<#callkit path#>`
 ```
 
-### Github integration
+### Github integration (temporary)
 
 ```dart
 dependencies:

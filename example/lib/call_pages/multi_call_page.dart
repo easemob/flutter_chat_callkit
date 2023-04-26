@@ -228,6 +228,9 @@ class _MultiCallPageState extends State<MultiCallPage> {
       ],
     );
 
+    content = Scaffold(
+      body: content,
+    );
     return content;
   }
 
