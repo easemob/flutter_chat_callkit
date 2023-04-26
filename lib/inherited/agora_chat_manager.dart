@@ -93,7 +93,7 @@ class AgoraChatManager {
     log("chat method: $method, ${msg.toJson().toString()}");
   }
 
-  void onUserJoined() {
+  void onCurrentUserJoined() {
     model.hasJoined = true;
   }
 

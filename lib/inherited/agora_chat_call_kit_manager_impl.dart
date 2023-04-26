@@ -279,7 +279,7 @@ extension RTCEvent on AgoraChatCallKitManagerImpl {
   void onJoinChannelSuccess() async {
     if (_chat.model.curCall == null) return;
     await setDefaultModeType();
-    _chat.onUserJoined();
+    _chat.onCurrentUserJoined();
     if (_chat.model.curCall != null) {
       String channel = _chat.model.curCall!.channel;
       handlerMap.forEach((key, value) {
@@ -327,7 +327,6 @@ extension RTCEvent on AgoraChatCallKitManagerImpl {
 
         _chat.clearInfo();
       }
-      debugPrint("user leave: $userId");
     }
   }
 

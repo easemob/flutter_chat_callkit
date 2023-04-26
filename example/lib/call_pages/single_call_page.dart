@@ -117,7 +117,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
   Timer? timer;
   String? callId;
 
-  Widget? removeVideoWidget;
+  Widget? remoteVideoWidget;
 
   bool hasInit = false;
   bool backgroundVideo = true;
@@ -187,7 +187,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
         widget.userId,
         type: widget.type,
       );
-    } catch (e) {
+    } on AgoraChatCallError catch (e) {
       Navigator.of(context).pop();
     }
   }
@@ -232,11 +232,9 @@ class _SingleCallPageState extends State<SingleCallPage> {
   void onUserMuteVideo(int agoraUid, bool muted) {
     if (widget.type == AgoraChatCallType.audio_1v1) return;
     if (muted) {
-      removeVideoWidget = Container(color: Colors.black);
+      remoteVideoWidget = Container(color: Colors.black);
     } else {
-      removeVideoWidget = AgoraChatCallManager.getRemoteVideoView(
-        agoraUid,
-      );
+      remoteVideoWidget = AgoraChatCallManager.getRemoteVideoView(agoraUid);
     }
 
     setState(() {});
@@ -320,8 +318,8 @@ class _SingleCallPageState extends State<SingleCallPage> {
   Widget backgroundMaskWidget() {
     if (!hasInit) return const Offstage();
     Widget content;
-    if (backgroundVideo && removeVideoWidget != null) {
-      content = removeWidget();
+    if (backgroundVideo && remoteVideoWidget != null) {
+      content = remoteWidget();
     } else {
       content = localWidget();
     }
@@ -337,7 +335,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
     if (!hasInit) return const Offstage();
     Widget content;
     if (!backgroundVideo) {
-      content = removeWidget();
+      content = remoteWidget();
     } else {
       content = localWidget();
     }
@@ -358,8 +356,8 @@ class _SingleCallPageState extends State<SingleCallPage> {
     return content;
   }
 
-  Widget removeWidget() {
-    return removeVideoWidget ?? Container();
+  Widget remoteWidget() {
+    return remoteVideoWidget ?? Container();
   }
 
   Widget localWidget() {
@@ -424,7 +422,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
 
   Widget videoCallWidget() {
     Widget content = switchCameraButton();
-    if (removeVideoWidget == null) {
+    if (remoteVideoWidget == null) {
       content = Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
