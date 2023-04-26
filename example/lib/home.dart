@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    AgoraChatCallManager.removeEventListener("home");
+    AgoraChatCallManager.removeEventListener("UNIQUE_HANDLER_ID");
     super.dispose();
   }
 
