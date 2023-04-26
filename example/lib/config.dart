@@ -6,7 +6,7 @@ class Config {
   static String appServerUserMapperURL = "channel/mapper";
   static String appServerHost = "a1.easemob.com";
 
-  static const String userId = "du001";
-  static const String password = "1";
+  static const String userId = "";
+  static const String password = "";
   static const String agoraToken = "";
 }
