@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:example/tools/request_tool.dart';
 import 'package:flutter/material.dart';
 import 'package:agora_chat_callkit/agora_chat_callkit.dart';
@@ -50,14 +52,16 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   ScrollController scrollController = ScrollController();
   String _chatId = "";
+  String _userId = '';
+  String _password = '';
   final List<String> _logText = [];
 
   @override
   void initState() {
     super.initState();
     // set agoraToken request handler.
-    AgoraChatCallManager.setRTCTokenHandler((channel, agoraAppId, agoraUid) {
-      return requestAppServerToken(channel, agoraAppId, agoraUid);
+    AgoraChatCallManager.setRTCTokenHandler((channel, agoraAppId) {
+      return requestAppServerToken(channel, Random().nextInt(999999));
     });
 
     // set agoraUid and userId mapper handler.
@@ -86,20 +90,36 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.max,
           children: [
-            const SizedBox(height: 10),
-            const Text("login userId: ${Config.userId}"),
-            const Text("password: ${Config.password}"),
-            const Text("agoraToken: ${Config.agoraToken}"),
-            const SizedBox(height: 10),
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      hintText: "UserId",
+                    ),
+                    onChanged: (userId) => _userId = userId,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      hintText: "Password",
+                    ),
+                    onChanged: (pwd) => _password = pwd,
+                  ),
+                ),
+              ],
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Expanded(
                   flex: 1,
                   child: TextButton(
-                    onPressed: () {
-                      _signIn();
-                    },
+                    onPressed: _signIn,
                     style: ButtonStyle(
                       foregroundColor: MaterialStateProperty.all(Colors.white),
                       backgroundColor:
@@ -111,15 +131,25 @@ class _MyHomePageState extends State<MyHomePage> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextButton(
-                    onPressed: () {
-                      _signOut();
-                    },
+                    onPressed: _signOut,
                     style: ButtonStyle(
                       foregroundColor: MaterialStateProperty.all(Colors.white),
                       backgroundColor:
                           MaterialStateProperty.all(Colors.lightBlue),
                     ),
                     child: const Text("SIGN OUT"),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextButton(
+                    onPressed: _signUp,
+                    style: ButtonStyle(
+                      foregroundColor: MaterialStateProperty.all(Colors.white),
+                      backgroundColor:
+                          MaterialStateProperty.all(Colors.lightBlue),
+                    ),
+                    child: const Text("SIGN UP"),
                   ),
                 ),
               ],
@@ -182,46 +212,38 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _signIn() async {
-    _addLogToConsole('begin sign in...');
-    try {
-      bool judgmentPwdOrToken = false;
-      do {
-        if (Config.password.isNotEmpty) {
-          await ChatClient.getInstance.login(
-            Config.userId,
-            Config.password,
-          );
-          judgmentPwdOrToken = true;
-          break;
-        }
+    _addLogToConsole('sign in...');
+    String? agoraToken = await fetchAgoraToken(_userId, _password);
+    if (agoraToken == null) {
+      _addLogToConsole('sign in fail.');
+    } else {
+      try {
+        await ChatClient.getInstance.loginWithAgoraToken(_userId, agoraToken);
 
-        if (Config.agoraToken.isNotEmpty) {
-          await ChatClient.getInstance.loginWithAgoraToken(
-            Config.userId,
-            Config.agoraToken,
-          );
-          judgmentPwdOrToken = true;
-          break;
-        }
-      } while (false);
-      if (judgmentPwdOrToken) {
         _addLogToConsole('sign in success');
-      } else {
-        _addLogToConsole(
-            'sign in fail: The password and agoraToken cannot both be null.');
+      } on ChatError catch (e) {
+        _addLogToConsole('sign in fail: ${e.description}');
       }
-    } on ChatError catch (e) {
-      _addLogToConsole('sign in fail: ${e.description}');
     }
   }
 
   void _signOut() async {
-    _addLogToConsole('begin sign out...');
+    _addLogToConsole('sign out...');
     try {
       await ChatClient.getInstance.logout();
       _addLogToConsole('sign out success');
     } on ChatError catch (e) {
       _addLogToConsole('sign out fail: ${e.description}');
+    }
+  }
+
+  void _signUp() async {
+    _addLogToConsole('sign up...');
+    String? errorStr = await registerAccount(_userId, _password);
+    if (errorStr != null) {
+      _addLogToConsole('sign up fail: $errorStr');
+    } else {
+      _addLogToConsole('sign up success');
     }
   }
 

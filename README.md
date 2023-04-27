@@ -395,13 +395,18 @@ If demo is required, configure the following information in the `example/lib/con
 
 ```dart
 class Config {
-  static String agoraAppId = "";
-  static String appkey = "";
+  static String agoraAppId = "15cb0d28b87b425ea613fc46f7c9f974";
+  static String appkey = "easemob#easeim";
 
-  static String appServerTokenURL = "";
-  static String appServerUserMapperURL = "";
-  static String appServerHost = "";
+  static String appServerTokenURL = "token/rtcToken/v1";
+  static String appServerUserMapperURL = "channel/mapper";
+  static String appServerHost = "a1.easemob.com";
+
+  static const String userId = "";
+  static const String password = "";
+  static const String agoraToken = "";
 }
+
 ```
 
 To obtain `agoraToken`, you need to set up an AppServer and provide a mapping service for agoraUid and userId.
