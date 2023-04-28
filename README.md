@@ -64,9 +64,16 @@ In the example/android/app/proguard-rules.pro file, add the following lines to p
 
 ## Getting started
 
-Integrate callkit, which can be downloaded locally or integrated through git.
+Integrate callkit, which can be added from pubdev, downloaded locally, or integrated via git.
 
-### Local integration (temporary)
+### pub dev integration (Not released yet)
+
+```dart
+flutter pub add agora_chat_callkit
+flutter pub get
+```
+
+### Local integration
 
 ```dart
 dependencies:
@@ -74,7 +81,7 @@ dependencies:
         path: `<#callkit path#>`
 ```
 
-### Github integration (temporary)
+### Github integration
 
 ```dart
 dependencies:
