@@ -182,7 +182,6 @@ class AgoraRTCManager {
         options: const ChannelMediaOptions(),
       );
     } catch (e) {
-      debugPrint("e: ${e.toString()}");
       handler.onError?.call(ErrorCodeType.errFailed,
           "General error with no classified reason. Try calling the method again");
     }

@@ -6,7 +6,7 @@ class Config {
 
   static String appServerRegister = 'app/chat/user/register';
   static String appServerGetAgoraToken = 'app/chat/user/login';
-
+  /// https://a41.easemob.com/token/rtc/channel/flutter_35105789/agorauid/1071992463?userAccount=du001
   /// call token : http://a41.easemob.com/token/rtc/channel/"channel_name"/agorauid/"uid"?userAccount="account"
   static String appServerTokenURL = "token/rtc/channel";
 
