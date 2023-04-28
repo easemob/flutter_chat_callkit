@@ -49,8 +49,8 @@ Future<Map<String, int>> requestAppServerToken(
 
   Map<String, dynamic>? map = convert.jsonDecode(response.body);
   if (map != null) {
-    if (map["code"] == "RES_0K") {
-      ret[map["accessToken"]] = map["agoraUserId"] ?? 0;
+    if (map["code"] == "RES_OK") {
+      ret[map["accessToken"]] = agoraUid;
     }
   }
 
@@ -95,7 +95,7 @@ Future<AgoraChatCallUserMapper?> requestAppServerUserMapper(
   AgoraChatCallUserMapper? ret;
   Map<String, dynamic>? map = convert.jsonDecode(response.body);
   if (map != null) {
-    if (map["code"] == "RES_0K") {
+    if (map["code"] == "RES_OK") {
       String channel = map["channelName"];
       Map result = map["result"];
       Map<int, String> mapper = {};
