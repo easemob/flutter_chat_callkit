@@ -7,10 +7,9 @@ class Config {
   static String appServerRegister = 'app/chat/user/register';
   static String appServerGetAgoraToken = 'app/chat/user/login';
 
+  /// call token : http://a41.easemob.com/token/rtc/channel/"33333"/agorauid/"uid"?userAccount="account"
   static String appServerTokenURL = "token/rtc/channel";
+
+  /// mapper:  http://a41.easemob.com/agora/channel/mapper?channelName="111"$userAccount=userId
   static String appServerUserMapperURL = "agora/channel/mapper";
-
-
-  // call token : http://a41.easemob.com/token/rtc/channel/"33333"/agoraUid/"uid"?userAccount="account"
-  // mapper:  http://a41.easemob.com/agora/channel/mapper?channelName="111"$userAccount=userId
 }

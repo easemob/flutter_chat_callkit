@@ -395,16 +395,16 @@ If demo is required, configure the following information in the `example/lib/con
 
 ```dart
 class Config {
-  static String agoraAppId = "15cb0d28b87b425ea613fc46f7c9f974";
-  static String appkey = "easemob#easeim";
+  static String agoraAppId = "";
+  static String appkey = "";
 
-  static String appServerTokenURL = "token/rtcToken/v1";
-  static String appServerUserMapperURL = "channel/mapper";
-  static String appServerHost = "a1.easemob.com";
+  static String appServerDomain = "";
 
-  static const String userId = "";
-  static const String password = "";
-  static const String agoraToken = "";
+  static String appServerRegister = '';
+  static String appServerGetAgoraToken = '';
+
+  static String appServerTokenURL = "";
+  static String appServerUserMapperURL = "";
 }
 
 ```

@@ -76,7 +76,6 @@ Future<AgoraChatCallUserMapper?> requestAppServerUserMapper(
   Map<String, dynamic> params = {
     "userAccount": userId,
     "channelName": channel,
-    "appkey": Config.appkey,
   };
 
   var uri = Uri.https(
