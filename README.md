@@ -398,10 +398,15 @@ class Config {
   static String agoraAppId = "";
   static String appkey = "";
 
+  static String appServerDomain = "";
+
+  static String appServerRegister = '';
+  static String appServerGetAgoraToken = '';
+
   static String appServerTokenURL = "";
   static String appServerUserMapperURL = "";
-  static String appServerHost = "";
 }
+
 ```
 
 To obtain `agoraToken`, you need to set up an AppServer and provide a mapping service for agoraUid and userId.

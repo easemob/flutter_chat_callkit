@@ -1,12 +1,15 @@
 class Config {
   static String agoraAppId = "15cb0d28b87b425ea613fc46f7c9f974";
-  static String appkey = "easemob#easeim";
+  static String appkey = "41117440#383391";
 
-  static String appServerTokenURL = "token/rtcToken/v1";
-  static String appServerUserMapperURL = "channel/mapper";
-  static String appServerHost = "a1.easemob.com";
+  static String appServerDomain = "a41.easemob.com";
 
-  static const String userId = "";
-  static const String password = "";
-  static const String agoraToken = "";
+  static String appServerRegister = 'app/chat/user/register';
+  static String appServerGetAgoraToken = 'app/chat/user/login';
+
+  /// call token : http://a41.easemob.com/token/rtc/channel/"33333"/agorauid/"uid"?userAccount="account"
+  static String appServerTokenURL = "token/rtc/channel";
+
+  /// mapper:  http://a41.easemob.com/agora/channel/mapper?channelName="111"$userAccount=userId
+  static String appServerUserMapperURL = "agora/channel/mapper";
 }

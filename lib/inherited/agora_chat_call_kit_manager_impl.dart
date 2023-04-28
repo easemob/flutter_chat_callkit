@@ -2,8 +2,6 @@ import 'package:agora_chat_callkit/agora_chat_callkit.dart';
 import 'package:agora_chat_callkit/inherited/agora_chat_manager.dart';
 import 'package:agora_chat_callkit/inherited/agora_rtc_manager.dart';
 
-import 'package:flutter/widgets.dart';
-
 import 'agora_chat_call_enum.dart';
 
 class AgoraChatCallKitManagerImpl {
@@ -151,10 +149,9 @@ class AgoraChatCallKitManagerImpl {
     Map<String, int> agoraToken = await rtcTokenHandler!.call(
       _chat.model.curCall!.channel,
       _rtc.agoraAppId!,
-      _chat.model.agoraUid,
     );
 
-    if (_chat.model.curCall == null) return;
+    if (_chat.model.curCall == null || agoraToken.isEmpty) return;
 
     String? username = ChatClient.getInstance.currentUserId;
 
