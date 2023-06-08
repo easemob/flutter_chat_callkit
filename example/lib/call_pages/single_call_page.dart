@@ -187,7 +187,7 @@ class _SingleCallPageState extends State<SingleCallPage> {
         widget.userId,
         type: widget.type,
       );
-    } on AgoraChatCallError catch (e) {
+    } on AgoraChatCallError {
       Navigator.of(context).pop();
     }
   }
