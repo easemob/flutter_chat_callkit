@@ -49,6 +49,7 @@ If your target platform is Android, your development environment must meet the f
 - An Android simulator or a real Android device running Android SDK API level 21 or later
 
 <div class="alert note">You can run <code>flutter doctor</code> to see if there are any platform dependencies you need to complete the setup.</div>
+
 ## Project setup
 
 ### Add the dependencies
@@ -86,14 +87,16 @@ Add the following dependencies in `pubspec.yaml`:
 
 Add the following lines to **info.plist**:
 
-```
-Privacy - Microphone Usage Description, and add a note in the Value column.
-Privacy - Camera Usage Description, and add a note in the Value column.
-```
+
+|Key|Type|Value|
+---|---|---
+`Privacy - Microphone Usage Description` | String | For microphone access
+`Privacy - Camera Usage Description` | String | For camera access
+
 
 ### Prevent code obfuscation
 
-In the example/android/app/proguard-rules.pro file, add the following lines to prevent code obfuscation:
+In the example/android/app/proguard-rules.pro file, add the following lines to prevent code obfuscation: </application>
 
 ```
 -keep class com.hyphenate.** {*;}
@@ -215,7 +218,7 @@ AgoraChatCallManager.addEventListener(
 
 | Event             | Description                    |
 | :---------------- | :----------------------- |
-| final void Function(AgoraChatCallError error)? onError       | Occurs when the call fails. For example, the callee fails to answer the call. This event is applicable to one-to-one calls and group calls. See `AgoraChatCallError`.  |
+| final void Function(AgoraChatCallError error)? onError       | Occurs when the call fails. For example, the callee fails to join the channel or the call invitation fails to be sent. The operator receives the event. This event is applicable to one-to-one calls and group calls. See `AgoraChatCallError`.  |
 | final void Function(String? callId, AgoraChatCallEndReason reason)? onCallEnd | Occurs when the call ends. This event is applicable only to one-to-one calls. Both the caller and callee receive this event. See `AgoraChatCallEndReason`.  |
 | final void Function(int agoraUid, String? userId)? onUserLeaved | Occurs when an active user leaves. This event is applicable only to group calls. All other users in the call receive this event. In this event, `agoraUid` indicates the Agora RTC user ID and `userId` indicates the Agora Chat user ID. |
 | final void Function(int agoraUid, String? userId)? onUserJoined | Occurs when a user joins a call. The user that joins the call receives this event. This event is applicable only to group calls. In this event, `agoraUid` indicates the Agora RTC user ID and `userId` indicates the Agora Chat user ID. |
@@ -250,7 +253,8 @@ try {
 
 #### Start a group call
 
-To make a group call, you can call the `await AgoraChatCallManager.startInviteUsers` method to invite users to join the call. This method returns the `callId` parameter which can be used by the caller to hang up the call. The callees receive the `onReceiveCall` event.
+To make a group call, you can call the `await AgoraChatCallManager.startInviteUsers` method to invite users to join
+ the call. This method returns the `callId` parameter which can be used by the caller to hang up the call. The callees receive the `onReceiveCall` event.
 
 ```
 await AgoraChatCallManager.initRTC();
@@ -286,7 +290,7 @@ The callee needs to choose whether to answer or reject the call:
 
 - To answer a call, call the `AgoraChatCallManager.initRTC` method first and then the `answer` method.
 
-In a one-to-one call, both the caller and callee receive the `onAnswer` event. In a group call, the new user that join the call receive the `onUserJoined` event and other users in the call receive the `onJoinedChannel` event.
+In a one-to-one call, both the caller and callee receive the `onAnswer` event. In a group call, the new user that joins the call receives the `onUserJoined` event and other users in the call receive the `onJoinedChannel` event.
 
 ```
 await AgoraChatCallManager.initRTC();
