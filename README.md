@@ -218,7 +218,7 @@ AgoraChatCallManager.addEventListener(
 
 | Event             | Description                    |
 | :---------------- | :----------------------- |
-| final void Function(AgoraChatCallError error)? onError       | Occurs when the call fails. For example, the callee fails to answer the call. This event is applicable to one-to-one calls and group calls. See `AgoraChatCallError`.  |
+| final void Function(AgoraChatCallError error)? onError       | Occurs when the call fails. For example, the callee fails to join the channel or the call invitation fails to be sent. The operator receives the event. This event is applicable to one-to-one calls and group calls. See `AgoraChatCallError`.  |
 | final void Function(String? callId, AgoraChatCallEndReason reason)? onCallEnd | Occurs when the call ends. This event is applicable only to one-to-one calls. Both the caller and callee receive this event. See `AgoraChatCallEndReason`.  |
 | final void Function(int agoraUid, String? userId)? onUserLeaved | Occurs when an active user leaves. This event is applicable only to group calls. All other users in the call receive this event. In this event, `agoraUid` indicates the Agora RTC user ID and `userId` indicates the Agora Chat user ID. |
 | final void Function(int agoraUid, String? userId)? onUserJoined | Occurs when a user joins a call. The user that joins the call receives this event. This event is applicable only to group calls. In this event, `agoraUid` indicates the Agora RTC user ID and `userId` indicates the Agora Chat user ID. |
